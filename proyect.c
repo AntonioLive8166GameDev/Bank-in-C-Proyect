@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,14 +58,13 @@ string name[MAX_CLIENTS];
 s_string street[MAX_CLIENTS];
 string suburb[MAX_CLIENTS];
 string city[MAX_CLIENTS];
-s_string houseNumber[MAX_CLIENTS];
+s_string house_number[MAX_CLIENTS];
 s_string phone[MAX_CLIENTS];
 unsigned short registration_day[MAX_CLIENTS];
 unsigned short registration_month[MAX_CLIENTS];
 unsigned int registration_year[MAX_CLIENTS];
 double opening_balance[MAX_CLIENTS];
 double current_balance[MAX_CLIENTS];
-
 
 // Submenus
 void administrator_menu(void);
@@ -82,7 +82,7 @@ void withdraw(void);
 void check_balance(void);
 
 // Tools
-void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length);
+void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums);
 void remove_newline(char*);
 
 // Debug
@@ -98,16 +98,16 @@ void _ready(void) {
 
 int main(void) {
     _ready();
-    char loginMenu;
-    string admin = "AntonioLive8166", adminPswrd = "1", attempt;
+    char login_menu;
+    string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
 
     do {
         printf("How do you want to sign in?\n0) Cancel.\n1) Administrator.\n2) Client.\n\n$ ");
-        scanf(" %c", &loginMenu);
+        scanf(" %c", &login_menu);
         getchar(); // Clear the input buffer
 
         system("cls");
-        switch (loginMenu) {
+        switch (login_menu) {
         case '0': 
             printf("Logging out...\n");
             break;
@@ -117,7 +117,7 @@ int main(void) {
                 printf("Welcome, %s. Enter your password: $ ", admin);
                 scanf(" %s", attempt);
 
-                if (strcmp(adminPswrd, attempt) == 0) {
+                if (strcmp(admin_pswrd, attempt) == 0) {
                     system("cls");
                     administrator_menu();
                 } else {
@@ -125,7 +125,7 @@ int main(void) {
                     printf("Wrong password. Please, try again.\n");
                 }
 
-            } while (strcmp(adminPswrd, attempt) != 0);
+            } while (strcmp(admin_pswrd, attempt) != 0);
             break;
 
         case '2':
@@ -138,21 +138,21 @@ int main(void) {
             break;
         }
 
-    } while (loginMenu != '0');
+    } while (login_menu != '0');
     
     return 0;
 }
 
 void administrator_menu(void) {
-    char adminMenu;
+    char admin_menu;
     do {
         printf("Administrator Menu:\n0) Back.\n1) Register clients.\n2) Remove clients.\n"
                 "3) Update information.\n4) Client inquiry.\n\n$ ");
-        scanf(" %c", &adminMenu);
+        scanf(" %c", &admin_menu);
         getchar(); // Clear the input buffer
 
         system("cls");
-        switch (adminMenu) {
+        switch (admin_menu) {
         case '0':
             break;
         
@@ -177,7 +177,7 @@ void administrator_menu(void) {
             break;
         }
 
-    } while (adminMenu != '0');
+    } while (admin_menu != '0');
 }
 
 void register_clients(void) {
@@ -188,14 +188,14 @@ void register_clients(void) {
         // Check if the client slot is empty to avoid overwriting existing clients.
         if (strcmp(account_number[client], "") == 0) {
             printf("Registering client %zu:\n", client + 1);
-            ask_for_string("RFC", rfc[client], MIN_RFC_LENGTH, MAX_RFC_LENGTH);
-            ask_for_string("name", name[client], MIN_NAME_LENGTH, MAX_NAME_LENGTH);
-            ask_for_string("street name", street[client], MIN_STREET_LENGTH, MAX_STREET_LENGTH);
-            ask_for_string("suburb name", suburb[client], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH);
-            ask_for_string("city name", city[client], MIN_CITY_LENGTH, MAX_CITY_LENGTH);
-            ask_for_string("house number", houseNumber[client], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH);
-            ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH);
-            // TODO: Get system date and assign it to registration_date. ////////////////////////////////////////////////////////////////////////
+            ask_for_string("RFC", rfc[client], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
+            ask_for_string("name", name[client], MIN_NAME_LENGTH, MAX_NAME_LENGTH, false);
+            ask_for_string("street name", street[client], MIN_STREET_LENGTH, MAX_STREET_LENGTH, false);
+            ask_for_string("suburb name", suburb[client], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH, false);
+            ask_for_string("city name", city[client], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
+            ask_for_string("house number", house_number[client], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
+            ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
+            // TODO: Get System Date. ///////////////////////////////////////////////////////////////////////////////////////////////
             
             do {
                 printf("Enter opening balance (minimum $%.2f): $ ", MIN_OPENING_BALANCE);
@@ -225,27 +225,26 @@ void register_clients(void) {
     }
 
     // If there are no empty slots
-    printf("Error: No available slots to register a new client (Err. 01).\n");
+    printf("Error: No available slots to register a new client.\n");
     print_clients_and_info();
 }
 
 void remove_clients(void) {
     char option;
-    s_string clientToRemove;
+    s_string client_to_remove;
     printf("Enter the account number of the client to remove: $ ");
-    scanf(" %s", clientToRemove);
+    scanf(" %s", client_to_remove);
     getchar(); // Clear the input buffer
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
-        // Check if the client slot is empty to avoid overwriting existing clients
-        if (strcmp(account_number[client], clientToRemove) == 0) {
-            printf("Account number: %s\n", account_number[client]);
+                if (strcmp(account_number[client], client_to_remove) == 0) {
             printf("Client %zu information:\n", client + 1);
+            printf("Account number: %s\n", account_number[client]);
             printf("RFC: %s\n", rfc[client]);
             printf("Name: %s\n", name[client]);
             printf("Street: %s\n", street[client]);
             printf("Suburb: %s\n", suburb[client]);
             printf("City: %s\n", city[client]);
-            printf("House number: %s\n", houseNumber[client]);
+            printf("House number: %s\n", house_number[client]);
             printf("Phone number: %s\n", phone[client]);
             printf("Opening balance: $%.2f\n", opening_balance[client]);
             printf("Current balance: $%.2f\n", current_balance[client]);
@@ -257,7 +256,7 @@ void remove_clients(void) {
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'y' || option == 'Y') {
-                printf("Rearranging clients...\n\n");
+                printf("\nRearranging clients...\n");
                 // Rearrange clients to fill the slot of the client that must be removed.
                 for (size_t i = client; i < MAX_CLIENTS - 1; i++) {
                     strcpy(rfc[i], rfc[i + 1]);
@@ -265,16 +264,16 @@ void remove_clients(void) {
                     strcpy(street[i], street[i + 1]);
                     strcpy(suburb[i], suburb[i + 1]);
                     strcpy(city[i], city[i + 1]);
-                    strcpy(houseNumber[i], houseNumber[i + 1]);
+                    strcpy(house_number[i], house_number[i + 1]);
                     strcpy(phone[i], phone[i + 1]);
                     opening_balance[i] = opening_balance[i + 1];
                     current_balance[i] = current_balance[i + 1];
                     strcpy(account_number[i], account_number[i + 1]);
                 }
-                printf("\nClient removed successfully!\n\n");
+                printf("Client removed successfully!\n");
 
             } else {
-                printf("\nOperation aborted.\n\n");
+                printf("\nOperation aborted.\n");
             }
         }
     }
@@ -301,23 +300,40 @@ void check_balance(void) {
     // Implementation here
 }
 
-void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length) {
-    printf("Please, enter your %s (between %zu and %zu characters): $ ", item, min_length, max_length);
+void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums) {
+    // '?' & ':' are ternary condition. If only_nums is true, it ads ", only numbers", else, ads nothin (an empty string).
+    printf("Please, enter your %s (between %zu and %zu characters%s): $ ", item, min_length, max_length, only_nums ? ", only numbers" : "");
     do {
         /**
          * I used fgets() instead of scanf() 'cause it takes only as many characters as you want,
          * but (in this case) it takes max_length - 1, so that´s why I add 1 to max_length.
-         * This method needs getchar() 'cause fgets() doesn´t clear the input buffer by itself,
+         * This method needs to clear the input buffer 'cause fgets() doesn´t do it by itself,
          * so the extra characters that user enters are passed automatically in the next call.
          */
         fgets(answer, max_length + 1, stdin);
-        getchar();
-        // If user enters a RFC with 12 characters, there will be a \n at the end, so let´s remove it.
+        // If user enters an item with less than max characters, there will be a \n at the end, so let´s remove it.
         remove_newline(answer);
+        // If answer has the max amount of characters and there isn't a \n, user entered more characters than allowed, so we need to clean the input buffer.
+        if (strlen(answer) == max_length && answer[max_length - 1] != '\n') {
+            int character;
+            // Get characters in the buffer until it finds a \n or End Of File (EOF).
+            while ((character = getchar()) != '\n' && character != EOF);
+        }
+
+        // Check if answer length is valid.
         if (strlen(answer) < min_length || strlen(answer) > max_length) {
             printf("Error: %s must have between %zu and %zu characters. Please, try again: $ ", item, min_length, max_length);
+            continue; // If there's an error, repeat the loop.
         }
-    } while (strlen(answer) < min_length || strlen(answer) > max_length);
+
+        // If only_nums is true, check if there is another character than nums.
+        if (only_nums && srtspn(answer, "0123456789") != strlen(answer)) {
+            printf("Error: %s must contain only numbers. Please, try again: $ ", item);
+            continue;
+        }
+
+        break; // All good, exit the loop.
+    } while (1); // Doesn't finishes until a break statement is found.
 }
 
 void remove_newline(char* str) {
@@ -337,12 +353,12 @@ void print_clients_and_info(void) { // DEBUG //
         printf("%s\n", street[client]);
         printf("%s\n", suburb[client]);
         printf("%s\n", city[client]);
-        printf("%s\n", houseNumber[client]);
+        printf("%s\n", house_number[client]);
         printf("%s\n", phone[client]);
         printf("%hu\n", registration_day[client]);
         printf("%hu\n", registration_month[client]);
         printf("%u\n", registration_year[client]);
-        printf("%.2fy\n", current_balance[client]);
+        printf("%.2f\n", current_balance[client]);
         printf("======================================\n");
     }
 }
