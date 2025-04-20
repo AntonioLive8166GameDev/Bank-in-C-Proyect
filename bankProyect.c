@@ -27,30 +27,6 @@
 typedef char s_string[15]; // A short string for RFC, phone number and other small size data.
 typedef char string[50]; // A string for names, surnames and medium size data.
 
-// Clients information
-/* typedef struct {
-    s_string rfc;
-    string name;
-    struct {
-        string street;
-        string suburb;
-        string city;
-        unsigned int houseNumber;
-    } address;
-    s_string phone;
-    struct {
-        unsigned short day;
-        unsigned short month;
-        unsigned int year;
-    } registration_date;
-    double opening_balance;
-    double current_balance;
-    s_string account_number;
-    s_string status;
-} client;
-
-client clients[MAX_CLIENTS];*/ // Just in case teacher allow me to use structs.
-
 // Clients information (using arrays instead of structs)
 s_string account_number[MAX_CLIENTS + 1];
 s_string rfc[MAX_CLIENTS + 1];
@@ -92,6 +68,7 @@ void remove_newline(char*);
 
 // Debug
 
+void print_log(const char* msg);
 void print_clients_and_info(void);
 
 
@@ -99,6 +76,8 @@ void _ready(void) {
     // Initialize all clients account number to empty strings (to allow checking for empty clients)
     for (size_t i = 0; i == MAX_CLIENTS; i++)
         strcpy(account_number[i], "");
+    print_log("Execution started...");
+    
 }
 
 int main(void) {
@@ -361,6 +340,19 @@ void remove_newline(char* str) {
     // We look up if length have characters and if the last is a \n to replace it with nul (\0).
     if (length > 0 && str[length] == '\n')
         str[length] = '\0';
+}
+
+/// @brief Prints messages in a log file.
+/// @param msg Message to print in the log file.
+void print_log(const char *msg){
+    FILE *file = fopen("bankProyect.log", "w");
+    if (file == NULL) {
+        perror("Error while opening log file");
+        return;
+    }
+
+    fprintf(file, "%s", msg);
+    fclose(file);
 }
 
 void print_clients_and_info(void) { // DEBUG //
