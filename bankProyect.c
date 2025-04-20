@@ -271,7 +271,25 @@ void remove_clients(void) {
 }
 
 void update_information(void) {
-    // Implementation here
+    s_string account;
+    int account_index = (int);// <- get_account_index(ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+    int option;
+    ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+    printf("Select what you want to change.\n");
+    printf("0. Cancel.\n1. RFC.\n2.Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
+    do {
+        scanf(" %c", &option);
+        if (option < 0 || option > 7)
+            printf("Error: Invalid option. Please, try again: $ ");
+    } while (option < 0 || option > 0);
+
+    switch (option) {
+        case 0: return;
+        case 1:
+            ask_for_string("RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
+            break;
+        default: break;
+    }
 }
 
 void client_inquiry(void) {
