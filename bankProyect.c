@@ -52,49 +52,54 @@ typedef char string[50]; // A string for names, surnames and medium size data.
 client clients[MAX_CLIENTS];*/ // Just in case teacher allow me to use structs.
 
 // Clients information (using arrays instead of structs)
-s_string account_number[MAX_CLIENTS];
-s_string rfc[MAX_CLIENTS];
-string name[MAX_CLIENTS];
-s_string street[MAX_CLIENTS];
-string suburb[MAX_CLIENTS];
-string city[MAX_CLIENTS];
-s_string house_number[MAX_CLIENTS];
-s_string phone[MAX_CLIENTS];
-unsigned short registration_day[MAX_CLIENTS];
-unsigned short registration_month[MAX_CLIENTS];
-unsigned int registration_year[MAX_CLIENTS];
-double opening_balance[MAX_CLIENTS];
-double current_balance[MAX_CLIENTS];
+s_string account_number[MAX_CLIENTS + 1];
+s_string rfc[MAX_CLIENTS + 1];
+string name[MAX_CLIENTS + 1];
+s_string street[MAX_CLIENTS + 1];
+string suburb[MAX_CLIENTS + 1];
+string city[MAX_CLIENTS + 1];
+s_string house_number[MAX_CLIENTS + 1];
+s_string phone[MAX_CLIENTS + 1];
+unsigned short registration_day[MAX_CLIENTS + 1];
+unsigned short registration_month[MAX_CLIENTS + 1];
+unsigned int registration_year[MAX_CLIENTS + 1];
+double opening_balance[MAX_CLIENTS + 1];
+double current_balance[MAX_CLIENTS + 1];
+s_string status;
 
 // Submenus
+
 void administrator_menu(void);
 void client_menu(void);
 
 // Administrator options
+
 void register_clients(void);
 void remove_clients(void);
 void update_information(void);
 void client_inquiry(void);
 
 // Client options
+
 void deposit(void);
 void withdraw(void);
 void check_balance(void);
 
 // Tools
+
 void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums);
 void remove_newline(char*);
 
 // Debug
+
 void print_clients_and_info(void);
 
 
 void _ready(void) {
     // Initialize all clients account number to empty strings (to allow checking for empty clients)
-    for (size_t i = 0; i < MAX_CLIENTS; i++)
+    for (size_t i = 0; i == MAX_CLIENTS; i++)
         strcpy(account_number[i], "");
 }
-
 
 int main(void) {
     _ready();
@@ -180,9 +185,12 @@ void administrator_menu(void) {
     } while (admin_menu != '0');
 }
 
+/** 
+ * @brief Looks for an empty slot in clients and fills it with client's data.
+*/
+/** TODO: Get and store system date */
 void register_clients(void) {
-    // FIXME: Err. 01 displayed every time the loop finishes, even if there are empty slots.
-    // TODO: Add verification to check if values are valid.
+    fprintf(stderr, "FIXME: Err. 01 displayed every time the loop finishes, even if there are empty slots.");
     char option;
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         // Check if the client slot is empty to avoid overwriting existing clients.
@@ -195,7 +203,7 @@ void register_clients(void) {
             ask_for_string("city name", city[client], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
             ask_for_string("house number", house_number[client], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
             ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
-            // TODO: Get System Date. ///////////////////////////////////////////////////////////////////////////////////////////////
+            fprintf(stdout, "TODO: Get System Date.\n");
             
             do {
                 printf("Enter opening balance (minimum $%.2f): $ ", MIN_OPENING_BALANCE);
@@ -212,10 +220,12 @@ void register_clients(void) {
             
             printf("\nClient registered successfully!\n\n");
 
+            printf("Do you want to register another client? (y/n): $ ");
             do {
-                printf("Do you want to register another client? (y/n): $ ");
                 scanf(" %c", &option);
                 getchar(); // Clear the input buffer
+                if (option != 'y' && option != 'n' && option != 'Y' && option != 'N')
+                    printf("Error: Invalid option. Please, try again: $ ");
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'n' || option == 'N') {
@@ -225,18 +235,19 @@ void register_clients(void) {
     }
 
     // If there are no empty slots
-    printf("Error: No available slots to register a new client.\n");
+    //printf("Error: No available slots to register a new client.\n");
     print_clients_and_info();
 }
 
 void remove_clients(void) {
+    // FIXME: When all client slots are full and user tryes to remove one, the last slots aren't free.
     char option;
     s_string client_to_remove;
     printf("Enter the account number of the client to remove: $ ");
     scanf(" %s", client_to_remove);
     getchar(); // Clear the input buffer
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
-                if (strcmp(account_number[client], client_to_remove) == 0) {
+        if (strcmp(account_number[client], client_to_remove) == 0) {
             printf("Client %zu information:\n", client + 1);
             printf("Account number: %s\n", account_number[client]);
             printf("RFC: %s\n", rfc[client]);
@@ -258,7 +269,7 @@ void remove_clients(void) {
             if (option == 'y' || option == 'Y') {
                 printf("\nRearranging clients...\n");
                 // Rearrange clients to fill the slot of the client that must be removed.
-                for (size_t i = client; i < MAX_CLIENTS - 1; i++) {
+                for (size_t i = client; i < MAX_CLIENTS; i++) {
                     strcpy(rfc[i], rfc[i + 1]);
                     strcpy(name[i], name[i + 1]);
                     strcpy(street[i], street[i + 1]);
@@ -300,6 +311,12 @@ void check_balance(void) {
     // Implementation here
 }
 
+/// @brief Prompts the user for a string that meets certain requirements. Includes verification system.
+/// @param item What will be requested from the user.
+/// @param answer Where user's answer will be stored.
+/// @param min_length The minimum length for the input.
+/// @param max_length The minimum length for the input.
+/// @param only_nums If true, user must enter numbers only; else, other characters are valid.
 void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums) {
     // '?' & ':' are ternary condition. If only_nums is true, it ads ", only numbers", else, ads nothin (an empty string).
     printf("Please, enter your %s (between %zu and %zu characters%s): $ ", item, min_length, max_length, only_nums ? ", only numbers" : "");
@@ -327,7 +344,7 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
         }
 
         // If only_nums is true, check if there is another character than nums.
-        if (only_nums && srtspn(answer, "0123456789") != strlen(answer)) {
+        if (only_nums && strspn(answer, "0123456789") != strlen(answer)) {
             printf("Error: %s must contain only numbers. Please, try again: $ ", item);
             continue;
         }
@@ -336,6 +353,8 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
     } while (1); // Doesn't finishes until a break statement is found.
 }
 
+/// @brief Removes \\n of a string.
+/// @param str The string that have a \\n.
 void remove_newline(char* str) {
     // str length - 1 is saved in length. We substract 1 'cause arrays starts from zero instead of 1.
     size_t length = strlen(str) - 1;
