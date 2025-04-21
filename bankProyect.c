@@ -2,23 +2,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#define MAX_CLIENTS 5
+/// DEBUG: Temporary value.
+#define MAX_CLIENTS 3
 // User constants
 #define MIN_PSWRD_LENGTH 8
 #define MAX_PSWRD_LENGTH 30
 #define ACCOUNT_NUMBER_LENGTH 10
-#define MIN_NAME_LENGTH 1
+#define MIN_NAME_LENGTH 2
 #define MAX_NAME_LENGTH 50
 #define MIN_RFC_LENGTH 12
 #define MAX_RFC_LENGTH 13
-#define MIN_STREET_LENGTH 1
+#define MIN_STREET_LENGTH 2
 #define MAX_STREET_LENGTH 30
-#define MIN_HOUSE_NUMBER_LENGTH 1
+#define MIN_HOUSE_NUMBER_LENGTH 2
 #define MAX_HOUSE_NUMBER_LENGTH 10
-#define MIN_SUBURB_LENGTH 1
+#define MIN_SUBURB_LENGTH 2
 #define MAX_SUBURB_LENGTH 20
-#define MIN_CITY_LENGTH 1
+#define MIN_CITY_LENGTH 2
 #define MAX_CITY_LENGTH 20
 #define MIN_PHONE_LENGTH 10
 #define MAX_PHONE_LENGTH 13
@@ -27,7 +29,7 @@
 typedef char s_string[15]; // A short string for RFC, phone number and other small size data.
 typedef char string[50]; // A string for names, surnames and medium size data.
 
-// Clients information (using arrays instead of structs)
+// Clients information. (arr[n + 1] 'cause it needs a \0 at the end, else it may cause unexpected behavior whit some functions).
 s_string account_number[MAX_CLIENTS + 1];
 s_string rfc[MAX_CLIENTS + 1];
 string name[MAX_CLIENTS + 1];
@@ -63,12 +65,12 @@ void check_balance(void);
 
 // Tools
 
-void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums);
+void ask_for_string(const char*, char*, size_t, size_t, bool);
 void remove_newline(char*);
 
 // Debug
 
-void print_log(const char* msg);
+void push_log(int, const char*, const char*, const char*);
 void print_clients_and_info(void);
 
 
@@ -76,7 +78,8 @@ void _ready(void) {
     // Initialize all clients account number to empty strings (to allow checking for empty clients)
     for (size_t i = 0; i == MAX_CLIENTS; i++)
         strcpy(account_number[i], "");
-    print_log("Execution started...");
+    push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
+    push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
     
 }
 
@@ -86,7 +89,7 @@ int main(void) {
     string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
 
     do {
-        printf("How do you want to sign in?\n0) Cancel.\n1) Administrator.\n2) Client.\n\n$ ");
+        printf("How do you want to sign in?\n0. Cancel.\n1. Administrator.\n2. Client.\n\n$ ");
         scanf(" %c", &login_menu);
         getchar(); // Clear the input buffer
 
@@ -94,6 +97,7 @@ int main(void) {
         switch (login_menu) {
         case '0': 
             printf("Logging out...\n");
+            push_log(__LINE__, __func__, "INFO", "Program finished safely. [END]");
             break;
         
         case '1':
@@ -107,6 +111,7 @@ int main(void) {
                 } else {
                     system("cls");
                     printf("Wrong password. Please, try again.\n");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
                 }
 
             } while (strcmp(admin_pswrd, attempt) != 0);
@@ -119,6 +124,7 @@ int main(void) {
         default:
             system("cls");
             printf("Invalid option. Please try again.\n");
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
             break;
         }
 
@@ -130,10 +136,10 @@ int main(void) {
 void administrator_menu(void) {
     char admin_menu;
     do {
-        printf("Administrator Menu:\n0) Back.\n1) Register clients.\n2) Remove clients.\n"
-                "3) Update information.\n4) Client inquiry.\n\n$ ");
+        printf("Administrator Menu:\n0. Back.\n1. Register clients.\n2. Remove clients.\n"
+                "3. Update information.\n4. Client inquiry.\n\n$ ");
         scanf(" %c", &admin_menu);
-        getchar(); // Clear the input buffer
+        getchar();
 
         system("cls");
         switch (admin_menu) {
@@ -158,18 +164,15 @@ void administrator_menu(void) {
 
         default:
             printf("Invalid option. Please try again.\n");
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
             break;
         }
 
     } while (admin_menu != '0');
 }
 
-/** 
- * @brief Looks for an empty slot in clients and fills it with client's data.
-*/
-/** TODO: Get and store system date */
+/// @brief Looks for an empty slot in clients and fills it with client's data.
 void register_clients(void) {
-    fprintf(stderr, "FIXME: Err. 01 displayed every time the loop finishes, even if there are empty slots.");
     char option;
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         // Check if the client slot is empty to avoid overwriting existing clients.
@@ -182,29 +185,42 @@ void register_clients(void) {
             ask_for_string("city name", city[client], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
             ask_for_string("house number", house_number[client], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
             ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
-            fprintf(stdout, "TODO: Get System Date.\n");
+            /// TODO:
+            push_log(__LINE__, __func__, "INFO", "Get System Date is not implemented yet.");
             
             do {
                 printf("Enter opening balance (minimum $%.2f): $ ", MIN_OPENING_BALANCE);
                 scanf("%lf", &opening_balance[client]);
                 if (opening_balance[client] < MIN_OPENING_BALANCE) {
                     printf("Opening balance must be at least $%.2f.\n", MIN_OPENING_BALANCE);
+                    push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 }
             } while (opening_balance[client] < MIN_OPENING_BALANCE);
 
             // Generate account number
-            snprintf(account_number[client], sizeof(account_number[client]), "%s%u", rfc[client], client + 1);
+            srand(time(NULL)); // Randomize seed.
+            char nums[] = "0123456789";
+            push_log(__LINE__, __func__, "WARNING", "Account number duplication verification is not implemented yet.");
+            // RGN: Random-Generated Number.
+            for (size_t rgn = 0; rgn < ACCOUNT_NUMBER_LENGTH; rgn++) {
+                // Here is better strlen than sizeof, 'cause strlen doesn't include the \0.
+                account_number[client][rgn] = nums[rand() % strlen(nums)];
+            }
+            account_number[client][ACCOUNT_NUMBER_LENGTH] = '\0'; // Add null terminator
             
             current_balance[client] = opening_balance[client];
             
+            push_log(__LINE__, __func__, "INFO", "Client registered.");
             printf("\nClient registered successfully!\n\n");
 
             printf("Do you want to register another client? (y/n): $ ");
             do {
                 scanf(" %c", &option);
                 getchar(); // Clear the input buffer
-                if (option != 'y' && option != 'n' && option != 'Y' && option != 'N')
+                if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
                     printf("Error: Invalid option. Please, try again: $ ");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+                }
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'n' || option == 'N') {
@@ -213,18 +229,19 @@ void register_clients(void) {
         }
     }
 
+    /// FIXME:
+    push_log(__LINE__, __func__, "WARNING", "Err.01 displayed every time the loop finishes, even if there are empty slots.");
     // If there are no empty slots
     //printf("Error: No available slots to register a new client.\n");
     print_clients_and_info();
 }
 
 void remove_clients(void) {
-    // FIXME: When all client slots are full and user tryes to remove one, the last slots aren't free.
     char option;
     s_string client_to_remove;
-    printf("Enter the account number of the client to remove: $ ");
-    scanf(" %s", client_to_remove);
-    getchar(); // Clear the input buffer
+    /// FIXME:
+    push_log(__LINE__, __func__, "ERROR", "No registered users, but access granted.");
+    ask_for_string("account number", client_to_remove, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         if (strcmp(account_number[client], client_to_remove) == 0) {
             printf("Client %zu information:\n", client + 1);
@@ -239,10 +256,15 @@ void remove_clients(void) {
             printf("Opening balance: $%.2f\n", opening_balance[client]);
             printf("Current balance: $%.2f\n", current_balance[client]);
 
+            push_log(__LINE__, __func__, "WARNING", "Empty account verification to allow deletion is not implemented yet.");
+            printf("Do you want to remove this client? (y/n): $ ");
             do {
-                printf("Do you want to remove this client? (y/n): $ ");
                 scanf(" %c", &option);
                 getchar(); // Clear the input buffer
+                if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
+                    printf("Error: Invalid option. Please, try again: $ ");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+                }
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'y' || option == 'Y') {
@@ -260,9 +282,11 @@ void remove_clients(void) {
                     current_balance[i] = current_balance[i + 1];
                     strcpy(account_number[i], account_number[i + 1]);
                 }
+                push_log(__LINE__, __func__, "INFO", "Client removed.");
                 printf("Client removed successfully!\n");
 
             } else {
+                push_log(__LINE__, __func__, "INFO", "Client removing aborted.");
                 printf("\nOperation aborted.\n");
             }
         }
@@ -297,8 +321,8 @@ void check_balance(void) {
 /// @param max_length The minimum length for the input.
 /// @param only_nums If true, user must enter numbers only; else, other characters are valid.
 void ask_for_string(const char* item, char* answer, size_t min_length, size_t max_length, bool only_nums) {
-    // '?' & ':' are ternary condition. If only_nums is true, it ads ", only numbers", else, ads nothin (an empty string).
-    printf("Please, enter your %s (between %zu and %zu characters%s): $ ", item, min_length, max_length, only_nums ? ", only numbers" : "");
+    // '?' & ':' are ternary condition. If only_nums is true, it ads ", only numbers", else, ads nothing (an empty string).
+    printf("Please, enter the %s (between %zu and %zu characters%s): $ ", item, min_length, max_length, only_nums ? ", only numbers" : "");
     do {
         /**
          * I used fgets() instead of scanf() 'cause it takes only as many characters as you want,
@@ -307,8 +331,11 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
          * so the extra characters that user enters are passed automatically in the next call.
          */
         fgets(answer, max_length + 1, stdin);
+        // Adding the \0 character at the end (to avoid unexpected behavior with some functions).
+        answer[max_length] = '\0';
         // If user enters an item with less than max characters, there will be a \n at the end, so let´s remove it.
         remove_newline(answer);
+
         // If answer has the max amount of characters and there isn't a \n, user entered more characters than allowed, so we need to clean the input buffer.
         if (strlen(answer) == max_length && answer[max_length - 1] != '\n') {
             int character;
@@ -319,12 +346,14 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
         // Check if answer length is valid.
         if (strlen(answer) < min_length || strlen(answer) > max_length) {
             printf("Error: %s must have between %zu and %zu characters. Please, try again: $ ", item, min_length, max_length);
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
             continue; // If there's an error, repeat the loop.
         }
 
         // If only_nums is true, check if there is another character than nums.
         if (only_nums && strspn(answer, "0123456789") != strlen(answer)) {
             printf("Error: %s must contain only numbers. Please, try again: $ ", item);
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
             continue;
         }
 
@@ -337,21 +366,24 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
 void remove_newline(char* str) {
     // str length - 1 is saved in length. We substract 1 'cause arrays starts from zero instead of 1.
     size_t length = strlen(str) - 1;
-    // We look up if length have characters and if the last is a \n to replace it with nul (\0).
+    // We look up if length have characters and if the last is a \n to replace it with null (\0).
     if (length > 0 && str[length] == '\n')
         str[length] = '\0';
 }
 
-/// @brief Prints messages in a log file.
-/// @param msg Message to print in the log file.
-void print_log(const char *msg){
-    FILE *file = fopen("bankProyect.log", "w");
+/// @brief Pushes custom errors, warnings, etc. in a log file.
+/// @param line LINE standard int.
+/// @param func func standard const char[].
+/// @param msg The message that will be pushed in the log file.
+void push_log(int line, const char *func, const char *push_type, const char *msg){
+    FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
+        // Prints an error message in stderr using the standard variable errno.
         perror("Error while opening log file");
         return;
     }
 
-    fprintf(file, "%s", msg);
+    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: %s\n", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, push_type, msg);
     fclose(file);
 }
 
