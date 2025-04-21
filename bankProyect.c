@@ -105,7 +105,7 @@ int main(void) {
     string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
 
     do {
-        printf("How do you want to sign in?\n0. Cancel.\n1. Administrator.\n2. Client.\n\n$ ");
+        printf("How do you want to sign in?\n0. Exit.\n1. Administrator.\n2. Client.\n\n$ ");
         scanf(" %c", &login_menu);
         getchar(); // Clear the input buffer
 
@@ -148,7 +148,7 @@ int main(void) {
 void administrator_menu(void) {
     char admin_menu;
     do {
-        printf("Administrator Menu:\n0. Back.\n1. Register clients.\n2. Remove clients.\n"
+        printf("Administrator Menu:\n0. Log out.\n1. Register clients.\n2. Remove clients.\n"
                 "3. Update information.\n4. Client inquiry.\n\n$ ");
         scanf(" %c", &admin_menu);
         getchar();
@@ -365,7 +365,7 @@ void update_information(void) {
             }
         } while (option != '0');
 
-        printf("Do you want to change the information of another client? (y/n): $ ");
+        printf("Do you want to change another client's information? (y/n): $ ");
         do {
             scanf(" %c", &u_i_option);
             getchar();
@@ -377,8 +377,43 @@ void update_information(void) {
     } while (u_i_option != 'n' && u_i_option != 'N');
 }
 
+/// @brief Asks for a client and prints it's info.
 void client_inquiry(void) {
-    // Implementation here
+    s_string account;
+    int account_index;
+    char option;
+    do {
+        do {
+            ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+            account_index = get_account_index(account);
+        } while (account_index < 0);
+        
+        printf("%s\n", account_number[account_index]);
+        printf("%s\n", rfc[account_index]);
+        printf("%s\n", name[account_index]);
+        printf("%s\n", street[account_index]);
+        printf("%s\n", suburb[account_index]);
+        printf("%s\n", city[account_index]);
+        printf("%s\n", house_number[account_index]);
+        printf("%s\n", phone[account_index]);
+        printf("%hu\n", registration_day[account_index]);
+        printf("%hu\n", registration_month[account_index]);
+        printf("%u\n", registration_year[account_index]);
+        printf("%.2f\n", opening_balance[account_index]);
+        printf("%.2f\n", current_balance[account_index]);
+
+        push_log(__LINE__, __func__, "INFO", "Printed data of client %d", account_index);
+
+        printf("Do you want to see another client's information? (y/n): $ ");
+        do {
+            scanf(" %c", &option);
+            getchar();
+            if (option != 'y' && option != 'Y' && option != 'n' && option != 'N') {
+                push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+                printf("Error: Invalid option. Please, try again: $ ");
+            }
+        }while (option != 'y' && option != 'Y' && option != 'n' && option != 'N');
+    } while (option != 'n' && option != 'N');
 }
 
 void deposit(void) {
