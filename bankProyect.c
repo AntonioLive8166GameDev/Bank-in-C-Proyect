@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +71,7 @@ void remove_newline(char*);
 
 // Debug
 
-void push_log(int, const char*, const char*, const char*);
+void push_log(int, const char*, const char*, const char*, ...);
 void print_clients_and_info(void);
 
 
@@ -80,27 +81,30 @@ void _ready(void) {
         strcpy(account_number[i], "");
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
-    
-    strcpy(account_number[0], "0123456789\0");
-    strcpy(rfc[0], "HEAJ061203J4\0");
-    strcpy(name[0], "Antonio \0");
-    strcpy(street[0], "mamawebo 190");
-    strcpy(suburb[0], "Rio colorao\0");
-    strcpy(city[0], "Deoyork\0");
-    strcpy(house_number[0], "123");
-    strcpy(phone[0], "3481655796");
-    registration_day[0] = 03;
-    registration_month[0] = 01;
-    registration_year[0] = 2025;
-    opening_balance[0] = 5000.00;
-    current_balance[0] = 6700.00;
-    strcpy(status[0], "ACTIVE");
-    push_log(__LINE__, __func__, "DEBUG", "Client 1 data initialized.");
-
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
     _ready();
+    if (argc == 2 && strcmp(argv[1], "-i") == 0) {
+        strcpy(account_number[0], "0123456789\0");
+        strcpy(rfc[0], "HEAJ061203J4\0");
+        strcpy(name[0], "Antonio \0");
+        strcpy(street[0], "mamawebo 190");
+        strcpy(suburb[0], "Rio colorao\0");
+        strcpy(city[0], "Deoyork\0");
+        strcpy(house_number[0], "123");
+        strcpy(phone[0], "3481655796");
+        registration_day[0] = 03;
+        registration_month[0] = 01;
+        registration_year[0] = 2025;
+        opening_balance[0] = 5000.00;
+        current_balance[0] = 6700.00;
+        strcpy(status[0], "ACTIVE");
+        push_log(__LINE__, __func__, "DEBUG", "Client 1 data initialized.");
+    } else if (argc == 2 && strcmp(argv[1], "-i") != 0) {
+        push_log(__LINE__, __func__, "FATAL", "Invalid argument: Expected \"-i\", but received \"%s\"", argv[1]);
+        return 1;
+    }
     char login_menu;
     string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
 
@@ -313,7 +317,7 @@ void remove_clients(void) {
 void update_information(void) {
     s_string account;
     int account_index;// <-  = (int) get_account_index(ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
-    int option;
+    char option;
     ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
     printf("Select what you want to change.\n");
     printf("0. Cancel.\n1. RFC.\n2.Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
@@ -435,15 +439,24 @@ void remove_newline(char* str) {
 /// @param func func standard const char[].
 /// @param label Label of the log (e.g. DEBUG, ERROR, WARNING, INFO, USER_ERROR, FAIL, FATAL).
 /// @param msg The message that will be pushed in the log file.
-void push_log(int line, const char *func, const char *label, const char *msg){
+void push_log(int line, const char *func, const char *label, const char *msg, ...){
     FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
         // Prints an error message in stderr using the standard variable errno.
         perror("Error while opening log file");
         return;
     }
+    // Static part of the log
+    // strrchr() retunrs a pointer to the last time the character (2nd arg) appears in the string. This is to avoid writing the entire path of the file.
+    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: ", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, label);
+    
+    // Variable arguments (to support format).
+    va_list args;
+    va_start(args, msg);
+    vfprintf(file, msg, args); // Writes formated msg.
+    va_end(args);
 
-    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: %s\n", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, label, msg);
+    fprintf(file, "\n"); // Add a newline at the end.
     fclose(file);
 }
 
