@@ -82,30 +82,25 @@ void _ready(void) {
         strcpy(account_number[i], "");
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
+    strcpy(account_number[0], "0123456789\0");
+    strcpy(rfc[0], "HEAJ061203J4\0");
+    strcpy(name[0], "Antonio \0");
+    strcpy(street[0], "mamawebo 190");
+    strcpy(suburb[0], "Rio colorao\0");
+    strcpy(city[0], "Deoyork\0");
+    strcpy(house_number[0], "123");
+    strcpy(phone[0], "3481655796");
+    registration_day[0] = 03;
+    registration_month[0] = 01;
+    registration_year[0] = 2025;
+    opening_balance[0] = 5000.00;
+    current_balance[0] = 6700.00;
+    strcpy(status[0], "ACTIVE");
+    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[0]);
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     _ready();
-    if (argc == 2 && strcmp(argv[1], "-i") == 0) {
-        strcpy(account_number[0], "0123456789\0");
-        strcpy(rfc[0], "HEAJ061203J4\0");
-        strcpy(name[0], "Antonio \0");
-        strcpy(street[0], "mamawebo 190");
-        strcpy(suburb[0], "Rio colorao\0");
-        strcpy(city[0], "Deoyork\0");
-        strcpy(house_number[0], "123");
-        strcpy(phone[0], "3481655796");
-        registration_day[0] = 03;
-        registration_month[0] = 01;
-        registration_year[0] = 2025;
-        opening_balance[0] = 5000.00;
-        current_balance[0] = 6700.00;
-        strcpy(status[0], "ACTIVE");
-        push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[0]);
-    } else if (argc == 2 && strcmp(argv[1], "-i") != 0) {
-        push_log(__LINE__, __func__, "FATAL", "Invalid argument: Expected \"-i\", but received \"%s\"", argv[1]);
-        return 1;
-    }
     char login_menu;
     string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
 
