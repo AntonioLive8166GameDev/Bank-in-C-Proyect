@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +71,7 @@ void remove_newline(char*);
 
 // Debug
 
-void push_log(int, const char*, const char*, const char*);
+void push_log(int, const char*, const char*, const char*, ...);
 void print_clients_and_info(void);
 
 
@@ -79,7 +80,7 @@ void _ready(void) {
     for (size_t i = 0; i == MAX_CLIENTS; i++)
         strcpy(account_number[i], "");
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
-    push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
+    push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to %d.", MAX_CLIENTS);
     
 }
 
@@ -375,7 +376,7 @@ void remove_newline(char* str) {
 /// @param line LINE standard int.
 /// @param func func standard const char[].
 /// @param msg The message that will be pushed in the log file.
-void push_log(int line, const char *func, const char *push_type, const char *msg){
+void push_log(int line, const char *func, const char *push_type, const char *msg, ...){
     FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
         // Prints an error message in stderr using the standard variable errno.
@@ -383,7 +384,13 @@ void push_log(int line, const char *func, const char *push_type, const char *msg
         return;
     }
 
-    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: %s\n", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, push_type, msg);
+    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: ", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, push_type);
+    va_list args;
+    va_start(args, msg);
+    vfprintf(file, msg, args);
+    va_end(args);
+    
+    fprintf(file, "\n");
     fclose(file);
 }
 
