@@ -77,11 +77,11 @@ void print_clients_and_info(void);
 
 
 void _ready(void) {
+    push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
+    push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to %d.", MAX_CLIENTS);
     // Initialize all clients account number to empty strings (to allow checking for empty clients)
     for (size_t i = 0; i == MAX_CLIENTS; i++)
         strcpy(account_number[i], "");
-    push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
-    push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
     strcpy(account_number[0], "0123456789\0");
     strcpy(rfc[0], "HEAJ061203J4\0");
     strcpy(name[0], "Antonio \0");
