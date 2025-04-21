@@ -375,22 +375,26 @@ void remove_newline(char* str) {
 /// @brief Pushes custom errors, warnings, etc. in a log file.
 /// @param line LINE standard int.
 /// @param func func standard const char[].
+/// @param label Label of the log (e.g. DEBUG, ERROR, WARNING, INFO, USER_ERROR, FAIL, FATAL).
 /// @param msg The message that will be pushed in the log file.
-void push_log(int line, const char *func, const char *push_type, const char *msg, ...){
+void push_log(int line, const char *func, const char *label, const char *msg, ...){
     FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
         // Prints an error message in stderr using the standard variable errno.
         perror("Error while opening log file");
         return;
     }
-
-    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: ", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, push_type);
+    // Static part of the log
+    // strrchr() retunrs a pointer to the last time the character (2nd arg) appears in the string. This is to avoid writing the entire path of the file.
+    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: ", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, label);
+    
+    // Variable arguments (to support format).
     va_list args;
     va_start(args, msg);
-    vfprintf(file, msg, args);
+    vfprintf(file, msg, args); // Writes formated msg.
     va_end(args);
-    
-    fprintf(file, "\n");
+
+    fprintf(file, "\n"); // Add a newline at the end.
     fclose(file);
 }
 
