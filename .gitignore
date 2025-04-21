@@ -1,5 +1,7 @@
-proyect.exe
-proyect.ilk
-proyect.obj
-proyect.pdb
-vc140.pdb
+*.exe
+*.ilk
+*.obj
+*.pdb
+*.pdb
+*.log
+tests/
