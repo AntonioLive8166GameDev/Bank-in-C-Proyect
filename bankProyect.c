@@ -68,7 +68,7 @@ void check_balance(void);
 
 void ask_for_string(const char*, char*, size_t, size_t, bool);
 void remove_newline(char*);
-unsigned int get_account_index(const char*);
+int get_account_index(const char*);
 
 // Debug
 
@@ -109,7 +109,6 @@ int main(void) {
         scanf(" %c", &login_menu);
         getchar(); // Clear the input buffer
 
-        system("cls");
         switch (login_menu) {
         case '0': 
             printf("Logging out...\n");
@@ -122,10 +121,8 @@ int main(void) {
                 scanf(" %s", attempt);
 
                 if (strcmp(admin_pswrd, attempt) == 0) {
-                    system("cls");
                     administrator_menu();
                 } else {
-                    system("cls");
                     printf("Wrong password. Please, try again.\n");
                     push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
                 }
@@ -138,7 +135,6 @@ int main(void) {
             break;
 
         default:
-            system("cls");
             printf("Invalid option. Please try again.\n");
             push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
             break;
@@ -157,7 +153,6 @@ void administrator_menu(void) {
         scanf(" %c", &admin_menu);
         getchar();
 
-        system("cls");
         switch (admin_menu) {
         case '0':
             break;
@@ -313,54 +308,73 @@ void remove_clients(void) {
 void update_information(void) {
     s_string account;
     int account_index;
+    char u_i_option;
     do {
-        ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
-        account_index = get_account_index(account);
-    } while (account_index < 0);
-    char option;
-    ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
-    printf("Select what you want to change.\n");
-    printf("0. Cancel.\n1. RFC.\n2. Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
-    do {
-        scanf(" %c", &option);
-        
-        switch (option) {
-            case '0': return;
-            case '1':
-                ask_for_string("new RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
-                print_clients_and_info();
-                break;
+        do {
+            ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+            account_index = get_account_index(account);
+        } while (account_index < 0);
+        char option;
+        do {
+            printf("Select what you want to change.\n");
+            printf("0. Cancel.\n1. RFC.\n2. Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
+            scanf(" %c", &option);
+            getchar();
             
-            case 2:
-                ask_for_string("new name", name[account_index], MIN_NAME_LENGTH, MAX_NAME_LENGTH, false);
-                break;
-            
-            case '3':
-                ask_for_string("new street", street[account_index], MIN_STREET_LENGTH, MAX_STREET_LENGTH, false);
-                break;
-            
-            case '4':
-                ask_for_string("new house number", house_number[account_index], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
-                break;
-            
-            case '5':
-                ask_for_string("new suburb", suburb[account_index], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH, false);
-                break;
+            switch (option) {
+                case '0': break;
+                case '1':
+                    ask_for_string("new RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"rfc\" of client %d.", account_index);
+                    break;
                 
-            case '6':
-                ask_for_string("new city", city[account_index], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
-                break;
-            
-            case '7':
-                ask_for_string("new phone number", phone[account_index], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
-                break;
+                case '2':
+                    ask_for_string("new name", name[account_index], MIN_NAME_LENGTH, MAX_NAME_LENGTH, false);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"name\" of client %d.", account_index);
+                    break;
+                
+                case '3':
+                    ask_for_string("new street", street[account_index], MIN_STREET_LENGTH, MAX_STREET_LENGTH, false);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"street\" of client %d.", account_index);
+                    break;
+                
+                case '4':
+                    ask_for_string("new house number", house_number[account_index], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"house_number\" of client %d.", account_index);
+                    break;
+                
+                case '5':
+                    ask_for_string("new suburb", suburb[account_index], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH, false);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"suburb\" of client %d.", account_index);
+                    break;
+                    
+                case '6':
+                    ask_for_string("new city", city[account_index], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"city\" of client %d.", account_index);
+                    break;
+                
+                case '7':
+                    ask_for_string("new phone number", phone[account_index], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
+                    push_log(__LINE__, __func__, "INFO", "Changed atribute \"phone\" of client %d.", account_index);
+                    break;
 
-            default: 
-                printf("Error: Invalid option. Please, try again: $ ");
+                default: 
+                    printf("Error: Invalid option. Please, try again.\n");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+                    break;
+            }
+        } while (option != '0');
+
+        printf("Do you want to change the information of another client? (y/n): $ ");
+        do {
+            scanf(" %c", &u_i_option);
+            getchar();
+            if (u_i_option != 'y' && u_i_option != 'Y' && u_i_option != 'n' && u_i_option != 'N') {
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
-                break;
-        }
-    } while (option != 0);
+                printf("Error: Invalid option. Please, try again: $ ");
+            }
+        }while (u_i_option != 'y' && u_i_option != 'Y' && u_i_option != 'n' && u_i_option != 'N');
+    } while (u_i_option != 'n' && u_i_option != 'N');
 }
 
 void client_inquiry(void) {
@@ -437,15 +451,15 @@ void remove_newline(char* str) {
 }
 
 /// @brief Check if an account exists and returns it's array index, else, logs an error.
-/// @param account 
-/// @return 
-unsigned int get_account_index(const char *account) {
+/// @param account The account number that will be searched.
+/// @return The index in the arrays of the account received.
+int get_account_index(const char *account) {
     for (unsigned int index = 0; index < MAX_CLIENTS; index++) {
         if (strcmp(account_number[index], account) == 0)
             return index;
     }
 
-    printf("Error: Nonexisten account %s.\n", account);
+    printf("Error: Nonexistent account %s.\n", account);
     push_log(__LINE__, __func__, "FAIL", "Nonexistent account %s.", account);
     return -1;
 }
