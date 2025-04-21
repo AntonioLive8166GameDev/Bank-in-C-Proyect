@@ -43,7 +43,7 @@ unsigned short registration_month[MAX_CLIENTS + 1];
 unsigned int registration_year[MAX_CLIENTS + 1];
 double opening_balance[MAX_CLIENTS + 1];
 double current_balance[MAX_CLIENTS + 1];
-s_string status;
+s_string status[MAX_CLIENTS + 1];
 
 // Submenus
 
@@ -81,6 +81,22 @@ void _ready(void) {
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to 3.");
     
+    strcpy(account_number[0], "0123456789\0");
+    strcpy(rfc[0], "HEAJ061203J4\0");
+    strcpy(name[0], "Antonio \0");
+    strcpy(street[0], "mamawebo 190");
+    strcpy(suburb[0], "Rio colorao\0");
+    strcpy(city[0], "Deoyork\0");
+    strcpy(house_number[0], "123");
+    strcpy(phone[0], "3481655796");
+    registration_day[0] = 03;
+    registration_month[0] = 01;
+    registration_year[0] = 2025;
+    opening_balance[0] = 5000.00;
+    current_balance[0] = 6700.00;
+    strcpy(status[0], "ACTIVE");
+    push_log(__LINE__, __func__, "DEBUG", "Client 1 data initialized.");
+
 }
 
 int main(void) {
@@ -303,17 +319,42 @@ void update_information(void) {
     printf("0. Cancel.\n1. RFC.\n2.Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
     do {
         scanf(" %c", &option);
-        if (option < 0 || option > 7)
-            printf("Error: Invalid option. Please, try again: $ ");
-    } while (option < 0 || option > 0);
-
-    switch (option) {
-        case 0: return;
-        case 1:
-            ask_for_string("RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
+        
+        switch (option) {
+            case 0: return;
+            case 1:
+            ask_for_string("new RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
             break;
-        default: break;
-    }
+            
+            case 2:
+            ask_for_string("new name", name[account_index], MIN_NAME_LENGTH, MAX_NAME_LENGTH, false);
+            break;
+            
+            case 3:
+            ask_for_string("new street", street[account_index], MIN_STREET_LENGTH, MAX_STREET_LENGTH, false);
+            break;
+            
+            case 4:
+            ask_for_string("new house number", house_number[account_index], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
+            break;
+            
+            case 5:
+            ask_for_string("new suburb", suburb[account_index], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH, false);
+            break;
+            
+            case 6:
+            ask_for_string("new city", city[account_index], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
+            break;
+            
+            case 7:
+            ask_for_string("new phone number", phone[account_index], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
+            break;
+            default: 
+            printf("Error: Invalid option. Please, try again: $ ");
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+            break;
+        }
+    } while (option != 0);
 }
 
 void client_inquiry(void) {
@@ -392,8 +433,9 @@ void remove_newline(char* str) {
 /// @brief Pushes custom errors, warnings, etc. in a log file.
 /// @param line LINE standard int.
 /// @param func func standard const char[].
+/// @param label Label of the log (e.g. DEBUG, ERROR, WARNING, INFO, USER_ERROR, FAIL, FATAL).
 /// @param msg The message that will be pushed in the log file.
-void push_log(int line, const char *func, const char *push_type, const char *msg){
+void push_log(int line, const char *func, const char *label, const char *msg){
     FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
         // Prints an error message in stderr using the standard variable errno.
@@ -401,7 +443,7 @@ void push_log(int line, const char *func, const char *push_type, const char *msg
         return;
     }
 
-    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: %s\n", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, push_type, msg);
+    fprintf(file, "• %s %s\t%s:%d @ %s(): %s: %s\n", __DATE__, __TIME__, strrchr(__FILE__, '\\'), line, func, label, msg);
     fclose(file);
 }
 
