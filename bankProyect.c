@@ -272,7 +272,7 @@ void remove_clients(void) {
 
 void update_information(void) {
     s_string account;
-    int account_index = (int);// <- get_account_index(ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+    int account_index;// <-  = (int) get_account_index(ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
     int option;
     ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
     printf("Select what you want to change.\n");
