@@ -74,6 +74,7 @@ int get_account_index(const char *account);
 // Debug
 
 void push_log(int line, const char *func, const char *label, const char *msg, ...);
+void temp_client_info_serializer(void);
 void print_clients_and_info(void);
 
 
@@ -621,6 +622,7 @@ int get_account_index(const char *account) {
 /// @param label Label of the log (e.g. DEBUG, ERROR, WARNING, INFO, USER_ERROR, FAIL, FATAL).
 /// @param msg The message that will be pushed in the log file.
 void push_log(int line, const char *func, const char *label, const char *msg, ...){
+    // Opening a file with append permisions.
     FILE *file = fopen("bankProyect.log", "a");
     if (file == NULL) {
         // Prints an error message in stderr using the standard variable errno.
@@ -639,6 +641,41 @@ void push_log(int line, const char *func, const char *label, const char *msg, ..
 
     fprintf(file, "\n"); // Add a newline at the end.
     fclose(file);
+}
+
+void temp_client_info_serializer(void){
+    // Opening a file with write permissions.
+    FILE *file = fopen("temp_clients_info.json", "w");
+    if (file == NULL) {
+        // Prints an error message in stderr using the standard variable errno.
+        perror("Error while opening json file");
+        return;
+    }
+
+    // "Serialize" data.
+    fprintf(file, "{\n");
+    fprintf(file, "\t\"clients\": [\n");
+    for (size_t client = 0; client < MAX_CLIENTS; client++) {
+        fprintf(file, "\t\t\"client%zu\": {\n", client);
+        fprintf(file, "\t\t\t\"accountNumber\": \"%s\",\n", account_number[client]);
+        fprintf(file, "\t\t\t\"rfc\": \"%s\",\n", rfc[client]);
+        fprintf(file, "\t\t\t\"name\": \"%s\",\n", name[client]);
+        fprintf(file, "\t\t\t\"street\": \"%s\",\n", street[client]);
+        fprintf(file, "\t\t\t\"suburb\": \"%s\",\n", suburb[client]);
+        fprintf(file, "\t\t\t\"city\": \"%s\",\n", city[client]);
+        fprintf(file, "\t\t\t\"houseNumber\": \"%s\",\n", house_number[client]);
+        fprintf(file, "\t\t\t\"phone\": \"%s\",\n", phone[client]);
+        fprintf(file, "\t\t\t\"registrationDay\": %hu,\n", registration_day[client]);
+        fprintf(file, "\t\t\t\"registrationMonth\": %hu,\n", registration_month[client]);
+        fprintf(file, "\t\t\t\"registrarionYear\": %u,\n", registration_year[client]);
+        fprintf(file, "\t\t\t\"openingBalance\": %lf,\n", opening_balance[client]);
+        fprintf(file, "\t\t\t\"currentBalance\": %lf,\n", current_balance[client]);
+        fprintf(file, "\t\t\t\"password\": \"%s\",\n", password[client]);
+        fprintf(file, "\t\t\t\"status\": \"%s\",\n", status[client]);
+        fprintf(file, "\t\t}%c\n", client == MAX_CLIENTS - 1 ? '\0' : ',');
+    }
+    fprintf(file, "\t]\n");
+    fprintf(file, "{\n}");
 }
 
 /// @brief Prints all clients and their information.
