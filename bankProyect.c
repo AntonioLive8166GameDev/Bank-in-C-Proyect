@@ -87,7 +87,7 @@ void _ready(void) {
         printf("%s\n", password[i]);
     }
     push_log(__LINE__, __func__, "DEBUG", "Clients password initialized to \"2\"");
-    strcpy(account_number[0], "0123456789\0");
+    strcpy(account_number[0], "1234567890\0");
     strcpy(rfc[0], "HEAJ061203J4\0");
     strcpy(name[0], "Antonio\0");
     strcpy(street[0], "mamawebo 190\0");
@@ -103,21 +103,39 @@ void _ready(void) {
     strcpy(status[0], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[0]);
 
+    strcpy(account_number[1], "0123456789\0");
+    strcpy(rfc[1], "HEAJ061203J4\0");
+    strcpy(name[1], "Antonio\0");
+    strcpy(street[1], "mamawebo 190\0");
+    strcpy(suburb[1], "Rio colorao\0");
+    strcpy(city[1], "Deoyork\0");
+    strcpy(house_number[1], "123\0");
+    strcpy(phone[1], "3481655796\0");
+    registration_day[1] = 03;
+    registration_month[1] = 01;
+    registration_year[1] = 2025;
+    opening_balance[1] = 5000.00;
+    current_balance[1] = 6700.00;
+    strcpy(status[1], "ACTIVE\0");
+    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[1]);
+
     push_log(__LINE__, __func__, "INFO", "The transactoin log is not implemented yet.");
     push_log(__LINE__, __func__, "INFO", "The system date is not implemented yet.");
     push_log(__LINE__, __func__, "WARNING", "Duplicate account number verification is not implemented yet.");
+    push_log(__LINE__, __func__, "WARNING", "Acces to self.remove_clients() is granted even if there are no registered users.");
 }
 
 int main(void) {
     _ready();
     char login_menu;
-    string admin = "AntonioLive8166", admin_pswrd = "1", attempt;
+    string admin = "AntonioLive8166", admin_pswrd = "MacmillanEducationEverywere", attempt;
 
     do {
         printf("How do you want to sign in?\n0. Exit.\n1. Administrator.\n2. Client.\n\n$ ");
         scanf(" %c", &login_menu);
-        getchar(); // Clear the input buffer
-
+        getchar(); // Clear the input buffer.
+        
+        system("cls"); // Clear the console.
         switch (login_menu) {
             case '0': 
                 printf("Program finished.\n");
@@ -128,12 +146,13 @@ int main(void) {
                 do {
                     printf("Welcome, %s. Enter your password: $ ", admin);
                     scanf(" %s", attempt);
+                    system("cls"); // Clear the console.
 
                     if (strcmp(admin_pswrd, attempt) == 0) {
                         administrator_menu();
                     } else {
                         printf("Wrong password. Please, try again.\n");
-                        push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
+                        push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt to login.");
                     }
 
                 } while (strcmp(admin_pswrd, attempt) != 0);
@@ -146,6 +165,7 @@ int main(void) {
                     ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
                     account_index = get_account_index(account);
                 } while (account_index < 0);
+                /// FIXME: Password verification system for clients.
                 // do {
                 //     printf("%s", password[account_index]);
                 //     printf("Welcome, %s. Enter your password: $ ", name[account_index]);
@@ -160,6 +180,7 @@ int main(void) {
 
                 // } while (strcmp(password[account_index], attempt) != 0);
                 // break;
+
                 client_menu(account_index);
                 break;
 
@@ -176,6 +197,7 @@ int main(void) {
 
 void administrator_menu(void) {
     push_log(__LINE__, __func__, "INFO", "Logged in as \"administrator\".");
+    system("cls"); // Clear the console.
     char admin_menu;
     do {
         printf("Administrator Menu:\n0. Log out.\n1. Register clients.\n2. Remove clients.\n"
@@ -183,6 +205,7 @@ void administrator_menu(void) {
         scanf(" %c", &admin_menu);
         getchar();
 
+        system("cls"); // Clear the console.
         switch (admin_menu) {
         case '0':
             push_log(__LINE__, __func__, "INFO", "Logged out as \"administrator\".");
@@ -222,6 +245,7 @@ void client_menu(int account_index) {
         scanf(" %c", &client_menu);
         getchar(); // Clear the input buffer
 
+        system("cls"); // Clear the console.
         switch (client_menu) {
             case '0':
                 push_log(__LINE__, __func__, "INFO", "Client %s logged out.", account_number[account_index]);
@@ -265,14 +289,13 @@ void register_clients(void) {
             ask_for_string("city name", city[client], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
             ask_for_string("house number", house_number[client], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
             ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
-            /// TODO:
-            push_log(__LINE__, __func__, "INFO", "Get System Date is not implemented yet.");
             
+            printf("Enter opening balance (minimum $%.2f): $", MIN_OPENING_BALANCE);
             do {
-                printf("Enter opening balance (minimum $%.2f): $ ", MIN_OPENING_BALANCE);
                 scanf("%lf", &opening_balance[client]);
+                system("cls"); // Clear the console.
                 if (opening_balance[client] < MIN_OPENING_BALANCE) {
-                    printf("Opening balance must be at least $%.2f.\n", MIN_OPENING_BALANCE);
+                    printf("Error: Opening balance must be at least $%.2f. Please, try again: $", MIN_OPENING_BALANCE);
                     push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 }
             } while (opening_balance[client] < MIN_OPENING_BALANCE);
@@ -291,12 +314,13 @@ void register_clients(void) {
             current_balance[client] = opening_balance[client];
             
             push_log(__LINE__, __func__, "INFO", "Client registered.");
-            printf("\nClient registered successfully!\n\n");
+            printf("Client registered successfully!\n\n");
 
             printf("Do you want to register another client? (y/n): $ ");
             do {
                 scanf(" %c", &option);
                 getchar(); // Clear the input buffer
+                system("cls"); // Clear the console.
                 if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
                     printf("Error: Invalid option. Please, try again: $ ");
                     push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
@@ -304,16 +328,15 @@ void register_clients(void) {
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'n' || option == 'N') {
-                break; // Exit this submenu if the user doesn't want to register another client
+                return; // Exit this submenu if the user doesn't want to register another client
             }
         }
     }
 
-    /// FIXME:
-    push_log(__LINE__, __func__, "WARNING", "Err.01 displayed every time the loop finishes, even if there are empty slots.");
+    system("cls"); // Clear the console.
     // If there are no empty slots
-    //printf("Error: No available slots to register a new client.\n");
-    print_clients_and_info();
+    push_log(__LINE__, __func__, "FAIL", "Ran out of slots to register new clients.");
+    printf("Error: No available slots to register a new client.\n");
 }
 
 /// @brief Removes a client from the built-in database.
@@ -325,7 +348,7 @@ void remove_clients(void) {
     ask_for_string("account number", client_to_remove, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         if (strcmp(account_number[client], client_to_remove) == 0) {
-            printf("Client %zu information:\n", client + 1);
+            printf("Client %zu information:\n\n", client + 1);
             printf("Account number: %s\n", account_number[client]);
             printf("RFC: %s\n", rfc[client]);
             printf("Name: %s\n", name[client]);
@@ -338,10 +361,11 @@ void remove_clients(void) {
             printf("Current balance: $%.2f\n", current_balance[client]);
 
             push_log(__LINE__, __func__, "WARNING", "Empty account verification to allow deletion is not implemented yet.");
-            printf("Do you want to remove this client? (y/n): $ ");
+            printf("\nDo you want to remove this client? (y/n): $ ");
             do {
                 scanf(" %c", &option);
                 getchar(); // Clear the input buffer
+                system("cls"); // Clear the console.
                 if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
                     printf("Error: Invalid option. Please, try again: $ ");
                     push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
@@ -349,7 +373,7 @@ void remove_clients(void) {
             } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
             if (option == 'y' || option == 'Y') {
-                printf("\nRearranging clients...\n");
+                printf("Rearranging clients...\n");
                 // Rearrange clients to fill the slot of the client that must be removed.
                 for (size_t i = client; i < MAX_CLIENTS; i++) {
                     strcpy(rfc[i], rfc[i + 1]);
@@ -364,15 +388,14 @@ void remove_clients(void) {
                     strcpy(account_number[i], account_number[i + 1]);
                 }
                 push_log(__LINE__, __func__, "INFO", "Client removed.");
-                printf("Client removed successfully!\n");
+                printf("Client removed successfully!\n\n");
 
             } else {
                 push_log(__LINE__, __func__, "INFO", "Client removing aborted.");
-                printf("\nOperation aborted.\n");
+                printf("Operation aborted.\n\n");
             }
         }
     }
-    print_clients_and_info();
 }
 
 /// @brief Updates client information in the built-in database. 
@@ -388,45 +411,53 @@ void update_information(void) {
         char option;
         do {
             printf("Select what you want to change.\n");
-            printf("0. Cancel.\n1. RFC.\n2. Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n");
+            printf("0. Back.\n1. RFC.\n2. Name.\n3. Street.\n4. House number.\n5. Suburb.\n6. City.\n7. Phone number.\n\n$ ");
             scanf(" %c", &option);
             getchar();
             
+            system("cls"); // Clear the console.
             switch (option) {
                 case '0': break;
                 case '1':
                     ask_for_string("new RFC", rfc[account_index], MIN_RFC_LENGTH, MAX_RFC_LENGTH, false);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"rfc\" of client %d.", account_index);
+                    printf("Atribute \"rfc\" changed successfully!\n\n");
                     break;
                 
                 case '2':
                     ask_for_string("new name", name[account_index], MIN_NAME_LENGTH, MAX_NAME_LENGTH, false);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"name\" of client %d.", account_index);
+                    printf("Atribute \"name\" changed successfully!\n\n");
                     break;
                 
                 case '3':
                     ask_for_string("new street", street[account_index], MIN_STREET_LENGTH, MAX_STREET_LENGTH, false);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"street\" of client %d.", account_index);
+                    printf("Atribute \"street\" changed successfully!\n\n");
                     break;
                 
                 case '4':
                     ask_for_string("new house number", house_number[account_index], MIN_HOUSE_NUMBER_LENGTH, MAX_HOUSE_NUMBER_LENGTH, true);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"house_number\" of client %d.", account_index);
+                    printf("Atribute \"house number\" changed successfully!\n\n");
                     break;
                 
                 case '5':
                     ask_for_string("new suburb", suburb[account_index], MIN_SUBURB_LENGTH, MAX_SUBURB_LENGTH, false);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"suburb\" of client %d.", account_index);
+                    printf("Atribute \"suburb\" changed successfully!\n\n");
                     break;
                     
                 case '6':
                     ask_for_string("new city", city[account_index], MIN_CITY_LENGTH, MAX_CITY_LENGTH, false);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"city\" of client %d.", account_index);
+                    printf("Atribute \"new city\" changed successfully!\n\n");
                     break;
                 
                 case '7':
                     ask_for_string("new phone number", phone[account_index], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
                     push_log(__LINE__, __func__, "INFO", "Changed atribute \"phone\" of client %d.", account_index);
+                    printf("Atribute \"phone number\" changed successfully!\n\n");
                     break;
 
                 default: 
@@ -436,16 +467,20 @@ void update_information(void) {
             }
         } while (option != '0');
 
+        system("cls"); // Clear the console.
         printf("Do you want to change another client's information? (y/n): $ ");
         do {
             scanf(" %c", &u_i_option);
             getchar();
+            system("cls"); // Clear the console.
             if (u_i_option != 'y' && u_i_option != 'Y' && u_i_option != 'n' && u_i_option != 'N') {
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 printf("Error: Invalid option. Please, try again: $ ");
             }
         }while (u_i_option != 'y' && u_i_option != 'Y' && u_i_option != 'n' && u_i_option != 'N');
     } while (u_i_option != 'n' && u_i_option != 'N');
+
+    system("cls"); // Clear the console.
 }
 
 /// @brief Asks for a client and prints it's info.
@@ -459,32 +494,37 @@ void client_inquiry(void) {
             account_index = get_account_index(account);
         } while (account_index < 0);
         
-        printf("%s\n", account_number[account_index]);
-        printf("%s\n", rfc[account_index]);
-        printf("%s\n", name[account_index]);
-        printf("%s\n", street[account_index]);
-        printf("%s\n", suburb[account_index]);
-        printf("%s\n", city[account_index]);
-        printf("%s\n", house_number[account_index]);
-        printf("%s\n", phone[account_index]);
-        printf("%hu\n", registration_day[account_index]);
-        printf("%hu\n", registration_month[account_index]);
-        printf("%u\n", registration_year[account_index]);
-        printf("%.2f\n", opening_balance[account_index]);
-        printf("%.2f\n", current_balance[account_index]);
+        printf("Client %d information:\n\n", account_index + 1);
+        printf("Account number: %s\n", account_number[account_index]);
+        printf("RFC: %s\n", rfc[account_index]);
+        printf("Name: %s\n", name[account_index]);
+        printf("Street: %s\n", street[account_index]);
+        printf("Suburb: %s\n", suburb[account_index]);
+        printf("City: %s\n", city[account_index]);
+        printf("House number: %s\n", house_number[account_index]);
+        printf("Phone number: %s\n", phone[account_index]);
+        printf("Registration Day: %hu\n", registration_day[account_index]);
+        printf("Registration Month: %hu\n", registration_month[account_index]);
+        printf("Registration Year: %u\n", registration_year[account_index]);
+        printf("Opening Balance: %.2f\n", opening_balance[account_index]);
+        printf("Current Balance: %.2f\n", current_balance[account_index]);
 
-        push_log(__LINE__, __func__, "INFO", "Printed data of client %d", account_index);
+        push_log(__LINE__, __func__, "INFO", "Printed data of client %d.", account_index);
 
-        printf("Do you want to see another client's information? (y/n): $ ");
+        printf("\nDo you want to see another client's information? (y/n): $ ");
         do {
             scanf(" %c", &option);
             getchar();
+            system("cls"); // Clear the console.
             if (option != 'y' && option != 'Y' && option != 'n' && option != 'N') {
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 printf("Error: Invalid option. Please, try again: $ ");
             }
         }while (option != 'y' && option != 'Y' && option != 'n' && option != 'N');
+
     } while (option != 'n' && option != 'N');
+
+    system("cls"); // Clear the console.
 }
 
 
@@ -497,6 +537,7 @@ void deposit(int account_index) {
     printf("Enter the amount to deposit: $");
     do {
         scanf("%lf", &deposit_amount);
+        system("cls"); // Clear the console.
         if (deposit_amount <= 0) {
             printf("Error: Deposit amount must be greater than zero. Please, try again: $");
             push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
@@ -504,8 +545,8 @@ void deposit(int account_index) {
     } while (deposit_amount <= 0);
     
     current_balance[account_index] += deposit_amount;
-    printf("Deposit successful! New balance: $%.2f\n", current_balance[account_index]);
-    push_log(__LINE__, __func__, "INFO", "Deposit of $%.2f made to account %s.", deposit_amount, account_number[account_index]);
+    printf("Deposit successful! New balance: $%.2f\n\n", current_balance[account_index]);
+    push_log(__LINE__, __func__, "INFO", "Deposit of $%.2f made to account %s. Current balance: $%.2f.", deposit_amount, account_number[account_index], current_balance[account_index]);
 }
 
 /// @brief Withdraws an amount from the specified account. Current balance mustn´t be less than 3000.00
@@ -515,6 +556,7 @@ void withdraw(int account_index) {
     printf("Enter the amount to withdraw: $");
     do {
         scanf("%lf", &withdraw_amount);
+        system("cls"); // Clear the console.
         if (withdraw_amount <= 0) {
             printf("Error: Withdraw amount must be greater than zero.\n");
             push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
@@ -525,16 +567,17 @@ void withdraw(int account_index) {
     } while (withdraw_amount <= 0 || current_balance[account_index] - withdraw_amount < 3000.00);
 
     current_balance[account_index] -= withdraw_amount;
-    printf("Withdrawal successful! New balance: $%.2f\n", current_balance[account_index]);
-    push_log(__LINE__, __func__, "INFO", "Withdrawal of $%.2f made from account %s. Current balance: $%.2f",
+    printf("Withdrawal successful! New balance: $%.2f\n\n", current_balance[account_index]);
+    push_log(__LINE__, __func__, "INFO", "Withdrawal of $%.2f made from account %s. Current balance: $%.2f.",
             withdraw_amount, account_number[account_index], current_balance[account_index]);
 }
 
 /// @brief Looks up the current balance of the specified account.
 /// @param account_index The index of the account to check the balance of.
 void check_balance(int account_index) {
-    printf("Current balance: $%.2f\n", current_balance[account_index]);
-    push_log(__LINE__, __func__, "INFO", "Checked balance of account %s. Current balance: $%.2f",
+    system("cls"); // Clear the console.
+    printf("Current balance: $%.2f\n\n", current_balance[account_index]);
+    push_log(__LINE__, __func__, "INFO", "Checked balance of account %s. Current balance: $%.2f.",
             account_number[account_index], current_balance[account_index]);
 }
 
@@ -570,6 +613,7 @@ void ask_for_string(const char* item, char* answer, size_t min_length, size_t ma
             while ((character = getchar()) != '\n' && character != EOF);
         }
 
+        system("cls"); // Clear the console.
         // Check if answer length is valid.
         if (strlen(answer) < min_length || strlen(answer) > max_length) {
             printf("Error: %s must have between %zu and %zu characters. Please, try again: $ ", item, min_length, max_length);
