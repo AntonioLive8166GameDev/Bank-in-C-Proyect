@@ -6,7 +6,7 @@
 #include <time.h>
 
 /// DEBUG: Temporary value.
-#define MAX_CLIENTS 3
+#define MAX_CLIENTS 300
 // User constants
 #define MIN_PSWRD_LENGTH 8
 #define MAX_PSWRD_LENGTH 30
@@ -74,7 +74,7 @@ int get_account_index(const char *account);
 // Debug
 
 void push_log(int line, const char *func, const char *label, const char *msg, ...);
-void temp_client_info_serializer(void);
+void serialize_clients_data(void);
 void print_clients_and_info(void);
 
 
@@ -103,6 +103,24 @@ void _ready(void) {
     current_balance[0] = 6700.00;
     strcpy(status[0], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[0]);
+
+    strcpy(account_number[1], "1234567890\0");
+    strcpy(rfc[1], "HEAJ061203J4\0");
+    strcpy(name[1], "Antonio\0");
+    strcpy(street[1], "mamawebo 190\0");
+    strcpy(suburb[1], "Rio colorao\0");
+    strcpy(city[1], "Deoyork\0");
+    strcpy(house_number[1], "123\0");
+    strcpy(phone[1], "3481655796\0");
+    registration_day[1] = 03;
+    registration_month[1] = 01;
+    registration_year[1] = 2025;
+    opening_balance[1] = 5000.00;
+    current_balance[1] = 6700.00;
+    strcpy(status[1], "ACTIVE\0");
+    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[1]);
+
+    serialize_clients_data();
 
     push_log(__LINE__, __func__, "INFO", "The transactoin log is not implemented yet.");
     push_log(__LINE__, __func__, "INFO", "The system date is not implemented yet.");
@@ -293,6 +311,7 @@ void register_clients(void) {
             
             push_log(__LINE__, __func__, "INFO", "Client registered.");
             printf("\nClient registered successfully!\n\n");
+            serialize_clients_data();
 
             printf("Do you want to register another client? (y/n): $ ");
             do {
@@ -366,6 +385,7 @@ void remove_clients(void) {
                 }
                 push_log(__LINE__, __func__, "INFO", "Client removed.");
                 printf("Client removed successfully!\n");
+                serialize_clients_data();
 
             } else {
                 push_log(__LINE__, __func__, "INFO", "Client removing aborted.");
@@ -435,6 +455,8 @@ void update_information(void) {
                     push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                     break;
             }
+            serialize_clients_data();
+
         } while (option != '0');
 
         printf("Do you want to change another client's information? (y/n): $ ");
@@ -445,7 +467,9 @@ void update_information(void) {
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 printf("Error: Invalid option. Please, try again: $ ");
             }
+
         }while (u_i_option != 'y' && u_i_option != 'Y' && u_i_option != 'n' && u_i_option != 'N');
+
     } while (u_i_option != 'n' && u_i_option != 'N');
 }
 
@@ -505,8 +529,9 @@ void deposit(int account_index) {
     } while (deposit_amount <= 0);
     
     current_balance[account_index] += deposit_amount;
-    printf("Deposit successful! New balance: $%.2f\n", current_balance[account_index]);
     push_log(__LINE__, __func__, "INFO", "Deposit of $%.2f made to account %s.", deposit_amount, account_number[account_index]);
+    printf("Deposit successful! New balance: $%.2f\n", current_balance[account_index]);
+    serialize_clients_data();
 }
 
 /// @brief Withdraws an amount from the specified account. Current balance mustn´t be less than 3000.00
@@ -526,9 +551,10 @@ void withdraw(int account_index) {
     } while (withdraw_amount <= 0 || current_balance[account_index] - withdraw_amount < 3000.00);
 
     current_balance[account_index] -= withdraw_amount;
-    printf("Withdrawal successful! New balance: $%.2f\n", current_balance[account_index]);
     push_log(__LINE__, __func__, "INFO", "Withdrawal of $%.2f made from account %s. Current balance: $%.2f",
             withdraw_amount, account_number[account_index], current_balance[account_index]);
+    printf("Withdrawal successful! New balance: $%.2f\n", current_balance[account_index]);
+    serialize_clients_data();
 }
 
 /// @brief Looks up the current balance of the specified account.
@@ -643,7 +669,10 @@ void push_log(int line, const char *func, const char *label, const char *msg, ..
     fclose(file);
 }
 
-void temp_client_info_serializer(void){
+/// @brief Serializes the clients data to a JSON file.
+/// @details The JSON file is created in the same directory as the source code. 
+/// The file is overwritten every time this function is called.
+void serialize_clients_data(void){
     // Opening a file with write permissions.
     FILE *file = fopen("temp_clients_info.json", "w");
     if (file == NULL) {
@@ -654,7 +683,7 @@ void temp_client_info_serializer(void){
 
     // "Serialize" data.
     fprintf(file, "{\n");
-    fprintf(file, "\t\"clients\": [\n");
+    fprintf(file, "\t\"clients\": {\n");
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         fprintf(file, "\t\t\"client%zu\": {\n", client);
         fprintf(file, "\t\t\t\"accountNumber\": \"%s\",\n", account_number[client]);
@@ -667,15 +696,42 @@ void temp_client_info_serializer(void){
         fprintf(file, "\t\t\t\"phone\": \"%s\",\n", phone[client]);
         fprintf(file, "\t\t\t\"registrationDay\": %hu,\n", registration_day[client]);
         fprintf(file, "\t\t\t\"registrationMonth\": %hu,\n", registration_month[client]);
-        fprintf(file, "\t\t\t\"registrarionYear\": %u,\n", registration_year[client]);
+        fprintf(file, "\t\t\t\"registrationYear\": %u,\n", registration_year[client]);
         fprintf(file, "\t\t\t\"openingBalance\": %lf,\n", opening_balance[client]);
         fprintf(file, "\t\t\t\"currentBalance\": %lf,\n", current_balance[client]);
         fprintf(file, "\t\t\t\"password\": \"%s\",\n", password[client]);
-        fprintf(file, "\t\t\t\"status\": \"%s\",\n", status[client]);
-        fprintf(file, "\t\t}%c\n", client == MAX_CLIENTS - 1 ? '\0' : ',');
+        fprintf(file, "\t\t\t\"status\": \"%s\"\n", status[client]);
+        fprintf(file, "\t\t}%s", client == MAX_CLIENTS - 1 ? "\n" : ",\n"); // The last objet can't be finished with a comma.
     }
-    fprintf(file, "\t]\n");
-    fprintf(file, "{\n}");
+    fprintf(file, "\t}\n");
+    fprintf(file, "}");
+
+    fclose(file);
+    push_log(__LINE__, __func__, "INFO", "JSON serialized.");
+    
+    /** Result example of one client:
+     * {
+     *     "clients": {
+     *         "client0": {
+     *             "accountNumber": "123456",
+     *             "rfc": "HEAJ061203J4",
+     *             "name": "Jesús Antonio Hernández Aceves",
+     *             "street": "Without street name",
+     *             "suburb": "Degollado",
+     *             "city": "Without city name",
+     *             "houseNumber": "00",
+     *             "phone": "3481355796",
+     *             "registrationDay": 15,
+     *             "registrationMonth": 4,
+     *             "registrationYear": 2025,
+     *             "openingBalance": 8166.00,
+     *             "currentBalance": 81668166.00,
+     *             "password": "WhatIsLove_BabyDontHurtMe_DontHurtMe_NoMore",
+     *             "status": "ACTIVE"
+     *         }
+     *     }
+     * }
+    */
 }
 
 /// @brief Prints all clients and their information.

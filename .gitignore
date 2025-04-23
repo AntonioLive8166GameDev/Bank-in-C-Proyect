@@ -4,5 +4,6 @@
 *.pdb
 *.pdb
 *.log
+*.json
 tests/
 .vscode/
