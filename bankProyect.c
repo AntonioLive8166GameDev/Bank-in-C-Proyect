@@ -44,12 +44,13 @@ unsigned short registration_month[MAX_CLIENTS + 1];
 unsigned int registration_year[MAX_CLIENTS + 1];
 double opening_balance[MAX_CLIENTS + 1];
 double current_balance[MAX_CLIENTS + 1];
+string password[MAX_CLIENTS + 1];
 s_string status[MAX_CLIENTS + 1];
 
 // Submenus
 
 void administrator_menu(void);
-void client_menu(void);
+void client_menu(int);
 
 // Administrator options
 
@@ -80,22 +81,26 @@ void _ready(void) {
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to %d.", MAX_CLIENTS);
     // Initialize all clients account number to empty strings (to allow checking for empty clients)
-    for (size_t i = 0; i == MAX_CLIENTS; i++)
+    for (size_t i = 0; i == MAX_CLIENTS; i++) {
         strcpy(account_number[i], "");
+        strcpy(password[i], "2");
+        printf("%s\n", password[i]);
+    }
+    push_log(__LINE__, __func__, "DEBUG", "Clients password initialized to \"2\"");
     strcpy(account_number[0], "0123456789\0");
     strcpy(rfc[0], "HEAJ061203J4\0");
-    strcpy(name[0], "Antonio \0");
-    strcpy(street[0], "mamawebo 190");
+    strcpy(name[0], "Antonio\0");
+    strcpy(street[0], "mamawebo 190\0");
     strcpy(suburb[0], "Rio colorao\0");
     strcpy(city[0], "Deoyork\0");
-    strcpy(house_number[0], "123");
-    strcpy(phone[0], "3481655796");
+    strcpy(house_number[0], "123\0");
+    strcpy(phone[0], "3481655796\0");
     registration_day[0] = 03;
     registration_month[0] = 01;
     registration_year[0] = 2025;
     opening_balance[0] = 5000.00;
     current_balance[0] = 6700.00;
-    strcpy(status[0], "ACTIVE");
+    strcpy(status[0], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.", account_number[0]);
 }
 
@@ -111,7 +116,7 @@ int main(void) {
 
         switch (login_menu) {
         case '0': 
-            printf("Logging out...\n");
+            printf("Program finished.\n");
             push_log(__LINE__, __func__, "INFO", "Program finished safely. [END]");
             break;
         
@@ -131,7 +136,25 @@ int main(void) {
             break;
 
         case '2':
-            printf("Client functionality not implemented yet.\n");
+            s_string account;
+            int account_index;
+            do {
+                ask_for_string("account number", account, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+                account_index = get_account_index(account);
+            } while (account_index < 0);
+            do {
+                printf("%s", password[account_index]);
+                printf("Welcome, %s. Enter your password: $ ", name[account_index]);
+                scanf(" %s", attempt);
+
+                if (strcmp(password[account_index], attempt) == 0) {
+                    client_menu(account_index);
+                } else {
+                    printf("Wrong password. Please, try again.\n");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
+                }
+
+            } while (strcmp(password[account_index], attempt) != 0);
             break;
 
         default:
@@ -146,6 +169,7 @@ int main(void) {
 }
 
 void administrator_menu(void) {
+    push_log(__LINE__, __func__, "INFO", "Logged in as \"administrator\".");
     char admin_menu;
     do {
         printf("Administrator Menu:\n0. Log out.\n1. Register clients.\n2. Remove clients.\n"
@@ -155,6 +179,7 @@ void administrator_menu(void) {
 
         switch (admin_menu) {
         case '0':
+            push_log(__LINE__, __func__, "INFO", "Logged out.");
             break;
         
         case '1':
@@ -180,6 +205,44 @@ void administrator_menu(void) {
         }
 
     } while (admin_menu != '0');
+}
+
+void client_menu(int account_index) {
+    push_log(__LINE__, __func__, "INFO", "Logged in as \"client\".");
+    char client_menu;
+    do {
+        printf("Client Menu:\n0. Log out.\n1. Deposit.\n2. Withraw.\n"
+                "3. Check balance.\n4. Change password.\n\n$ ");
+        scanf(" %c", &client_menu);
+        getchar();
+
+        switch (client_menu) {
+        case '0':
+            push_log(__LINE__, __func__, "INFO", "Logged out.");
+            break;
+        
+        case '1':
+            deposit();
+            break;
+
+        case '2':
+            withdraw();
+            break;
+
+        case '3':
+            check_balance();
+            break;
+
+        case '4':
+            /// TODO: Change client password system.
+
+        default:
+            printf("Invalid option. Please try again.\n");
+            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+            break;
+        }
+
+    } while (client_menu != '0');
 }
 
 /// @brief Looks for an empty slot in clients and fills it with client's data.
