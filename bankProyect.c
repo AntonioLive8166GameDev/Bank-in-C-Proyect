@@ -6,7 +6,7 @@
 #include <time.h>
 
 /// DEBUG: Temporary value.
-#define MAX_CLIENTS 300
+#define MAX_CLIENTS 5
 // User constants
 #define MIN_PSWRD_LENGTH 8
 #define MAX_PSWRD_LENGTH 30
@@ -387,6 +387,9 @@ void remove_clients(void) {
                     strcpy(city[i], city[i + 1]);
                     strcpy(house_number[i], house_number[i + 1]);
                     strcpy(phone[i], phone[i + 1]);
+                    registration_day[i] = registration_day[i + 1];
+                    registration_month[i] = registration_month[i + 1];
+                    registration_year[i] = registration_year[i + 1];
                     opening_balance[i] = opening_balance[i + 1];
                     current_balance[i] = current_balance[i + 1];
                     strcpy(account_number[i], account_number[i + 1]);
@@ -470,7 +473,8 @@ void update_information(void) {
                     push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                     break;
             }
-            serialize_clients_data();
+            if (option == '1' || option == '2' || option == '3' || option == '4' || option == '5' || option == '6' || option == '7') 
+                serialize_clients_data();
 
         } while (option != '0');
 
@@ -554,7 +558,7 @@ void deposit(int account_index) {
     } while (deposit_amount <= 0);
     
     current_balance[account_index] += deposit_amount;
-    push_log(__LINE__, __func__, "INFO", "Deposit of $%.2f made to account %s. Current balance: $%.2f.", deposit_amount, account_number[account_index], current_balance[account_index]);
+    push_log(__LINE__, __func__, "INFO", "Deposit of $%f made to account %s. Current balance: $%f.", deposit_amount, account_number[account_index], current_balance[account_index]);
     printf("Deposit successful! New balance: $%.2f\n\n", current_balance[account_index]);
     serialize_clients_data();
 }
@@ -577,7 +581,7 @@ void withdraw(int account_index) {
     } while (withdraw_amount <= 0 || current_balance[account_index] - withdraw_amount < 3000.00);
 
     current_balance[account_index] -= withdraw_amount;
-    push_log(__LINE__, __func__, "INFO", "Withdrawal of $%.2f made from account %s. Current balance: $%.2f.",
+    push_log(__LINE__, __func__, "INFO", "Withdrawal of $%f made from account %s. Current balance: $%f.",
             withdraw_amount, account_number[account_index], current_balance[account_index]);
     printf("Withdrawal successful! New balance: $%.2f\n\n", current_balance[account_index]);
     serialize_clients_data();
@@ -588,7 +592,7 @@ void withdraw(int account_index) {
 void check_balance(int account_index) {
     system("cls"); // Clear the console.
     printf("Current balance: $%.2f\n\n", current_balance[account_index]);
-    push_log(__LINE__, __func__, "INFO", "Checked balance of account %s. Current balance: $%.2f.",
+    push_log(__LINE__, __func__, "INFO", "Checked balance of account %s. Current balance: $%f.",
             account_number[account_index], current_balance[account_index]);
 }
 
@@ -737,7 +741,7 @@ void serialize_clients_data(void){
     fclose(file);
     push_log(__LINE__, __func__, "INFO", "JSON serialized.");
     
-    /** Result example of one client:
+    /** @example Result of one client:
      * {
      *     "clients": {
      *         "client0": {
@@ -763,6 +767,7 @@ void serialize_clients_data(void){
 }
 
 /// @brief Prints all clients and their information.
+/// @deprecated Use serialize_clients_data() instead.
 void print_clients_and_info(void) { 
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         printf("======================================\n");
