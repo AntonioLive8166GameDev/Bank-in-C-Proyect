@@ -174,24 +174,21 @@ int main(void) {
                     account_index = get_account_index(account);
                 } while (account_index < 0);
 
-                /// FIXME: Password verification system for clients.
                 // Clients login.
-                // do {
-                //     printf("%s", password[account_index]);
-                //     printf("Welcome, %s. Enter your password: $ ", name[account_index]);
-                //     scanf(" %s", attempt);
+                do {
+                    printf("Welcome, %s. ", name[account_index]);
+                    ask_for_string("password", attempt, MIN_PSWRD_LENGTH, MAX_PSWRD_LENGTH, false);
 
-                //     if (strcmp(password[account_index], attempt) == 0) {
-                //         client_menu(account_index);
-                //     } else {
-                //         printf("Wrong password. Please, try again.\n");
-                //         push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
-                //     }
+                    if (strcmp(password[account_index], attempt) == 0) {
+                        client_menu(account_index);
+                    } else {
+                        printf("Wrong password. Please, try again.\n");
+                        push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
+                    }
 
-                // } while (strcmp(password[account_index], attempt) != 0);
-                // break;
+                } while (strcmp(password[account_index], attempt) != 0);
 
-                client_menu(account_index);
+                // client_menu(account_index);
                 break;
 
             default:
@@ -277,7 +274,7 @@ void client_menu(int account_index) {
                 break;
 
             default:
-                printf("Invalid option. Please try again.\n");
+                printf("Invalid option. Please try again.\n\n");
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 break;
         }
