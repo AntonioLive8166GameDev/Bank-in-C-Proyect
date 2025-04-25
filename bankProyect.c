@@ -71,7 +71,7 @@ void ask_for_string(const char *item, char *answer, size_t min_length, size_t ma
 void remove_newline(char *str);
 int get_account_index(const char *account);
 int look_for_duplications(unsigned int client_index);
-// void get_time(void);
+int get_time(int *store, bool day, bool month, bool year);
 
 // Debug
 
@@ -784,10 +784,11 @@ int get_time(int *store, bool day, bool month, bool year) {
     }
     
     if (store == 0) {
-        return atoi(_date);
+        return atoi(_date); // atoi = ASCII to integer.
     }
 
     *store = atoi(_date);
+    return 0;
 }
 
 
