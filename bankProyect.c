@@ -85,28 +85,28 @@ void _ready(void) {
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to %d.", MAX_CLIENTS);
     // Initialize all clients account number to empty strings (to allow checking for empty clients).
-    // for (size_t i = 0; i == MAX_CLIENTS; i++) {
-    //     strcpy(account_number[i], "");
-    //     strcpy(password[i], "2");
-    //     printf("%s\n", password[i]);
-    // }
-    // push_log(__LINE__, __func__, "DEBUG", "Clients password initialized to \"2\"");
-    // strcpy(account_number[0], "0123456789\0");
-    // strcpy(rfc[0], "HEAJ061203J4\0");
-    // strcpy(name[0], "Antonio\0");
-    // strcpy(street[0], "mamawebo 190\0");
-    // strcpy(suburb[0], "Rio colorao\0");
-    // strcpy(city[0], "Deoyork\0");
-    // strcpy(house_number[0], "123\0");
-    // strcpy(phone[0], "3481655796\0");
-    // registration_day[0] = 03;
-    // registration_month[0] = 01;
-    // registration_year[0] = 2025;
-    // opening_balance[0] = 5000.00;
-    // current_balance[0] = 6700.00;
-    // strcpy(status[0], "ACTIVE\0");
-    // push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
-    //         account_number[0]);
+    for (size_t i = 0; i == MAX_CLIENTS; i++) {
+        strcpy(account_number[i], "");
+        strcpy(password[i], "2");
+        printf("%s\n", password[i]);
+    }
+    push_log(__LINE__, __func__, "DEBUG", "Clients password initialized to \"2\"");
+    strcpy(account_number[0], "0123456789\0");
+    strcpy(rfc[0], "HEAJ061203J4\0");
+    strcpy(name[0], "Antonio\0");
+    strcpy(street[0], "mamawebo 190\0");
+    strcpy(suburb[0], "Rio colorao\0");
+    strcpy(city[0], "Deoyork\0");
+    strcpy(house_number[0], "123\0");
+    strcpy(phone[0], "3481655796\0");
+    registration_day[0] = 03;
+    registration_month[0] = 01;
+    registration_year[0] = 2025;
+    opening_balance[0] = 5000.00;
+    current_balance[0] = 6700.00;
+    strcpy(status[0], "ACTIVE\0");
+    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
+            account_number[0]);
 
     // strcpy(account_number[1], "1234567890\0");
     // strcpy(rfc[1], "HEAJ061203J4\0");
@@ -437,12 +437,11 @@ void remove_clients(void) {
             printf("Account number: %s\n", account_number[client]);
             printf("RFC: %s\n", rfc[client]);
             printf("Name: %s\n", name[client]);
-            printf("Street: %s\n", street[client]);
-            printf("Suburb: %s\n", suburb[client]);
-            printf("City: %s\n", city[client]);
-            printf("House number: %s\n", house_number[client]);
+            printf("Address: %s %s, %s, %s\n", house_number[client], street[client], suburb[client],
+                    city[client]);
             printf("Phone number: %s\n", phone[client]);
-            printf("Opening balance: $%.2f\n", opening_balance[client]);
+            printf("Registration date: %hd/%hd/%d", registration_month[client],
+                    registration_day[client], registration_year[client]);
             printf("Current balance: $%.2f\n", current_balance[client]);
             printf("Status: \"%s\"\n", status[client]);
 
@@ -802,6 +801,12 @@ void withdraw(int account_index) {
 /// @param account_index The index of the account to check the balance of.
 void check_balance(int account_index) {
     system("cls"); // Clear the console.
+    time_t current_time = time(NULL);
+    string date;
+    strftime(date, sizeof(date), "%m/%d/%Y %H:%M:%S", localtime(&current_time));
+    printf("Date & time: %s\n", date);
+    printf("Account number: %s\n", account_number[account_index]);
+    printf("Name: %s\n", name[account_index]);
     printf("Current balance: $%.2f\n\n", current_balance[account_index]);
     push_log(__LINE__, __func__, "INFO", "Checked balance of account %s. Current balance: $%f.",
             account_number[account_index], current_balance[account_index]);
