@@ -73,7 +73,7 @@ void ask_for_string(const char *item, char *answer, size_t min_length, size_t ma
 void remove_newline(char *str);
 int get_account_index(const char *account);
 int look_for_duplications(unsigned int client_index);
-int get_time(int *store, bool day, bool month, bool year);
+int get_time(int *store, char date_element);
 
 // Debug
 
@@ -88,10 +88,7 @@ void _ready(void) {
     // Initialize all clients account number to empty strings (to allow checking for empty clients).
     for (size_t i = 0; i == MAX_CLIENTS; i++) {
         strcpy(account_number[i], "");
-        strcpy(password[i], "2");
-        printf("%s\n", password[i]);
     }
-    push_log(__LINE__, __func__, "DEBUG", "Clients password initialized to \"2\"");
     strcpy(account_number[0], "0123456789\0");
     strcpy(rfc[0], "HEAJ061203J4\0");
     strcpy(name[0], "Antonio\0");
@@ -105,6 +102,7 @@ void _ready(void) {
     registration_year[0] = 2025;
     opening_balance[0] = 5000.00;
     current_balance[0] = 6700.00;
+    strcpy(password[0], "juasjuas");
     strcpy(status[0], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
             account_number[0]);
@@ -324,7 +322,7 @@ void register_clients(void) {
                 
                 // Generate account number until is not duplicated.
                 do {
-                    /**
+                    /** Randomizing seed.
                      * srand = seed randomize I think XD?
                      * Establishes the initial initialization value for the pseudo-elementary numbers
                      * generator (seed value, which is it's parameter) used by the function rand()
@@ -351,42 +349,13 @@ void register_clients(void) {
             current_balance[client] = opening_balance[client];
             strcpy(status[client], "ACTIVE\0");
             
-            /** Setting registration date taking local time.
-             * time() returns the seconds since January 1, 1970 in a time_t object. We pass NULL
-             * as argument 'cause it returns by name and by interface, but if we pass NULL,
-             * only returns by name (we need it 'cause we are assigning the function call to a
-             * variable. It could be maked also in this way (by interface):
-             * @example
-             * time_t current_time;
-             * time(&current_time);
-             * 
-             * strftime() (string format time) formats a date and time and converts it to a string.
-             * The format is analogous to that of the printf() family of functions, but the %
-             * modifiers in this case are used to format dates.
-             * @example
-             * time_t current_time = time(NULL);
-             * char datef[50]; // datef = date formated.
-             * strftime(datef, sizeof(datef), "%d/%m/%Y %H:%M:%S", localtime(&current_time));
-             * printf("Current time: %s\n", datef);
-             * 
-             * @example Output of the code above: Current time: 24/04/2025 18:32:05
-             * 
-             * localtime() converts a time value and corrects it for the local time zone. There
-             * are more important details, but I'm not writing more. It's fun, but I'm tired.
-             * More info: https://algoritmos9511.gitlab.io/_downloads/e1ac04d57c11925f0283040c533417bb/tiempo.pdf
-             * More info: https://www.geeksforgeeks.org/time-function-in-c/
-             * More info: https://learn.microsoft.com/es-es/cpp/c-runtime-library/reference/localtime-localtime32-localtime64?view=msvc-170
-             */            
-            time_t current_time = time(NULL);
-            s_string _day, _month, _year;
-            strftime(_day, sizeof(_day), "%d", localtime(&current_time));
-            strftime(_month, sizeof(_month), "%m", localtime(&current_time));
-            strftime(_year, sizeof(_year), "%Y", localtime(&current_time));
-            
-            // Converting strings date to integer date.
-            registration_day[client] = atoi(_day);
-            registration_month[client] = atoi(_month);
-            registration_year[client] = atoi(_year);
+            /** Setting up registration date. 
+             * I made a (cast) getting registration day & month because of it's types (unsigned
+             * short). This is safe 'cause returned values don't exceed unsigned short capacity.
+            */
+            get_time((int*)&registration_day[client], 'd');
+            get_time((int*)&registration_month[client], 'm');
+            get_time(&registration_year[client], 'y');
             
             push_log(__LINE__, __func__, "INFO", "Client registered.");
             printf("Client registered successfully!\n\n");
@@ -922,15 +891,53 @@ int look_for_duplications(unsigned int client_index) {
     return 0;
 }
 
-int get_time(int *store, bool day, bool month, bool year) {
+/// @brief Gets the selected date element (day, month or year).
+/// @param store A pointer to the variable which will store the result. If 0, returns by mame only. 
+/// @param date_element 'd' for day, 'm' for month & 'y' for year.
+/// @return By name and by interface: The selected date element converted to int.
+/// @details This function returns by name and by interface 'cause I wanted to experiment with it.
+int get_time(int *store, char date_element) {
+    /** time(), strftime() & localtime().
+     * time() returns the seconds since January 1, 1970 in a time_t object. We pass NULL
+     * as argument 'cause it returns by name and by interface, but if we pass NULL,
+     * only returns by name (we need it 'cause we are assigning the function call to a
+     * variable. It could be maked also in this way (by interface):
+     * @example
+     * time_t current_time;
+     * time(&current_time);
+     * 
+     * strftime() (string format time) formats a date and time and converts it to a string.
+     * The format is analogous to that of the printf() family of functions, but the %
+     * modifiers in this case are used to format dates.
+     * @example
+     * time_t current_time = time(NULL);
+     * char datef[50]; // datef = date formated.
+     * strftime(datef, sizeof(datef), "%d/%m/%Y %H:%M:%S", localtime(&current_time));
+     * printf("Current time: %s\n", datef);
+     * 
+     * @example Output of the code above: Current time: 24/04/2025 18:32:05
+     * 
+     * localtime() converts a time value and corrects it for the local time zone. There
+     * are more important details, but I'm not writing more. It's fun, but I'm tired.
+     * More info: https://algoritmos9511.gitlab.io/_downloads/e1ac04d57c11925f0283040c533417bb/tiempo.pdf
+     * More info: https://www.geeksforgeeks.org/time-function-in-c/
+     * More info: https://learn.microsoft.com/es-es/cpp/c-runtime-library/reference/localtime-localtime32-localtime64?view=msvc-170
+     * 
+     * Pd: Returning by interface means modifying what a pointer supplied as an argument points to;
+     * while returning by name refers to using the return statement explicitly.
+     */            
     time_t current_time = time(NULL);
     s_string _date;
-    if (day == true) {
+    if (date_element == 'd') {
         strftime(_date, sizeof(_date), "%d", localtime(&current_time));
-    } else if (month == true) {
+    } else if (date_element == 'm') {
         strftime(_date, sizeof(_date), "%m", localtime(&current_time));
-    } else {
+    } else if (date_element == 'y') {
         strftime(_date, sizeof(_date), "%Y", localtime(&current_time));
+    } else {
+        push_log(__LINE__, __func__, "ERROR", "Invalid argument 1: Expected 'd', 'm' or 'y'; "
+                "but received '%c'.", date_element);
+        return -1;
     }
     
     if (store == 0) {
