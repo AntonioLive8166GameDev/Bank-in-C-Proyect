@@ -767,6 +767,14 @@ void deposit(int account_index) {
 /// @brief Withdraws an amount from the specified account. Current balance mustn´t be less than 3000.00
 /// @param account_index The index of the account to withdraw from.
 void withdraw(int account_index) {
+    // If client doesn't have enough funds, access is denied.
+    if ((strcmp(status[account_index], "ACTIVE") == 0 && current_balance[account_index] == MIN_BALANCE) || current_balance[account_index] == 0) {
+        push_log(__LINE__, __func__, "ERROR", "Client %s doesn't have enough funds.",
+                account_number[account_index]);
+        printf("Error: Insufficient funds.\n\n");
+        return;
+    }
+
     float withdraw_amount;
     printf("Enter the amount to withdraw: $");
     do {
