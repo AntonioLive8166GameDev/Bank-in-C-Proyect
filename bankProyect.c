@@ -182,6 +182,7 @@ int main(void) {
                 break;
 
             case '2': // Client.
+                ; // An empty statement to fix an error in CODE::BLOCKS (GCC compiler, I use MSVC).
                 s_string account;
                 int account_index;
 
@@ -1199,4 +1200,3 @@ void print_clients_and_info(void) {
         printf("======================================\n");
     }
 }
-    
