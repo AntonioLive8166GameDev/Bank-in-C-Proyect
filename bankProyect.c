@@ -139,6 +139,7 @@ void _ready(void) {
     registration_year[1] = 2025;
     opening_balance[1] = 5000.00;
     current_balance[1] = 6700.00;
+    strcpy(password[1], "juasjuas");
     strcpy(status[1], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
             account_number[1]);
@@ -204,8 +205,6 @@ int main(void) {
                     }
 
                 } while (strcmp(password[account_index], attempt) != 0);
-
-                // client_menu(account_index);
                 break;
 
             default:
@@ -291,7 +290,7 @@ void client_menu(int account_index) {
                 break;
 
             default:
-                printf("Invalid option. Please try again.\n\n");
+                printf("Invalid option. Please try again.\n");
                 push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 break;
         }
@@ -320,6 +319,9 @@ void register_clients(void) {
             ask_for_string("house number", house_number[client], MIN_HOUSE_NUMBER_LENGTH,
                     MAX_HOUSE_NUMBER_LENGTH, true);
             ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
+            
+            // Creating password
+            ask_for_string("new password", password[client], MIN_PSWRD_LENGTH, MAX_PSWRD_LENGTH, false);
             
             // Asking for an opening balance.
             printf("Enter opening balance (minimum $%.2f): $", MIN_OPENING_BALANCE);
@@ -358,7 +360,7 @@ void register_clients(void) {
                 
                 // Keep going till look_for_duplications returns 0 (no duplications found).
             } while (look_for_duplications(client) != 0); 
-            
+
             // Setting up current balance and status
             current_balance[client] = opening_balance[client];
             strcpy(status[client], "ACTIVE\0");
@@ -1148,7 +1150,7 @@ void serialize_clients_logs(void) {
     // Clients.
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         if (operation[client][0] == '\0') {
-            break; // Finish if client doesn't has any logs.
+            continue; // Skipp if client doesn't has any logs.
         }
 
         fprintf(file, "\t\t\"client%zu\": [\n", client);
@@ -1197,3 +1199,4 @@ void print_clients_and_info(void) {
         printf("======================================\n");
     }
 }
+    
