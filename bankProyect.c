@@ -139,6 +139,7 @@ void _ready(void) {
     registration_year[1] = 2025;
     opening_balance[1] = 5000.00;
     current_balance[1] = 6700.00;
+    strcpy(password[1], "juasjuas");
     strcpy(status[1], "ACTIVE\0");
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
             account_number[1]);
@@ -191,24 +192,19 @@ int main(void) {
                     account_index = get_account_index(account);
                 } while (account_index < 0);
 
-                /// FIXME: Password verification system for clients.
                 // Clients login.
-                // do {
-                //     printf("%s", password[account_index]);
-                //     printf("Welcome, %s. Enter your password: $ ", name[account_index]);
-                //     scanf(" %s", attempt);
+                do {
+                    printf("Welcome, %s. ", name[account_index]);
+                    ask_for_string("password", attempt, MIN_PSWRD_LENGTH, MAX_PSWRD_LENGTH, false);
 
-                //     if (strcmp(password[account_index], attempt) == 0) {
-                //         client_menu(account_index);
-                //     } else {
-                //         printf("Wrong password. Please, try again.\n");
-                //         push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
-                //     }
+                    if (strcmp(password[account_index], attempt) == 0) {
+                        client_menu(account_index);
+                    } else {
+                        printf("Wrong password. Please, try again.\n");
+                        push_log(__LINE__, __func__, "USER_ERROR", "Failed attempt.");
+                    }
 
-                // } while (strcmp(password[account_index], attempt) != 0);
-                // break;
-
-                client_menu(account_index);
+                } while (strcmp(password[account_index], attempt) != 0);
                 break;
 
             default:
@@ -324,6 +320,9 @@ void register_clients(void) {
                     MAX_HOUSE_NUMBER_LENGTH, true);
             ask_for_string("phone number", phone[client], MIN_PHONE_LENGTH, MAX_PHONE_LENGTH, true);
             
+            // Creating password
+            ask_for_string("new password", password[client], MIN_PSWRD_LENGTH, MAX_PSWRD_LENGTH, false);
+            
             // Asking for an opening balance.
             printf("Enter opening balance (minimum $%.2f): $", MIN_OPENING_BALANCE);
             do {
@@ -361,7 +360,7 @@ void register_clients(void) {
                 
                 // Keep going till look_for_duplications returns 0 (no duplications found).
             } while (look_for_duplications(client) != 0); 
-            
+
             // Setting up current balance and status
             current_balance[client] = opening_balance[client];
             strcpy(status[client], "ACTIVE\0");
@@ -1151,7 +1150,7 @@ void serialize_clients_logs(void) {
     // Clients.
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
         if (operation[client][0] == '\0') {
-            break; // Finish if client doesn't has any logs.
+            continue; // Skipp if client doesn't has any logs.
         }
 
         fprintf(file, "\t\t\"client%zu\": [\n", client);
@@ -1200,3 +1199,4 @@ void print_clients_and_info(void) {
         printf("======================================\n");
     }
 }
+    
