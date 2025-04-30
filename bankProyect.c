@@ -26,12 +26,14 @@
 #define MAX_PHONE_LENGTH 13
 #define MIN_OPENING_BALANCE 5000.00
 #define MIN_BALANCE 3000.00
+// Log constant
+#define MAX_OPERATION_LOGS 100
 
 typedef char s_string[17]; // A short string for RFC, phone number and other small size data.
 typedef char string[50]; // A string for names, surnames and medium size data.
 
 // Clients information. (arr[n + 1] 'cause it needs a \0 at the end, else it may cause unexpected
-// behavior whit some functions).
+// behavior whit some functions). It would be beter with structs...
 s_string account_number[MAX_CLIENTS + 1];
 s_string rfc[MAX_CLIENTS + 1];
 string name[MAX_CLIENTS + 1];
@@ -43,10 +45,21 @@ s_string phone[MAX_CLIENTS + 1];
 unsigned short registration_day[MAX_CLIENTS + 1];
 unsigned short registration_month[MAX_CLIENTS + 1];
 unsigned int registration_year[MAX_CLIENTS + 1];
-double opening_balance[MAX_CLIENTS + 1];
-double current_balance[MAX_CLIENTS + 1];
+float opening_balance[MAX_CLIENTS + 1];
+float current_balance[MAX_CLIENTS + 1];
 string password[MAX_CLIENTS + 1];
 s_string status[MAX_CLIENTS + 1];
+
+//                                                                       _________________________
+// Operations log.                                                      |client|log0|log1|log2|...|.
+char operation[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Format:         |  c0  | op | op | op |...|.
+unsigned short op_day[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same     |  c1  |day |day |day |...|.
+unsigned short op_month[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same   |  c2  |mon.|mon.|mon.|...|.
+unsigned int op_year[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same      |  c3  |year|year|year|...|.
+unsigned short op_hour[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same    |  c4  |hour|hour|hour|...|.
+unsigned short op_minute[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same  |  c5  |min.|min.|min.|...|.
+unsigned short op_second[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // Same  |  c6  |sec.|sec.|sec.|...|.
+float op_amount[MAX_CLIENTS + 1][MAX_OPERATION_LOGS]; // same           |  c7  | $$ | $$ | $$ |...|. 
 
 // Submenus
 
@@ -74,11 +87,13 @@ void remove_newline(char *str);
 int get_account_index(const char *account);
 int look_for_duplications(unsigned int client_index);
 int get_time(int *store, char date_element);
+void log_operation(unsigned int client_index, const char operation_key, float amount);
 
 // Debug
 
 void push_log(int line, const char *func, const char *label, const char *msg, ...);
 void serialize_clients_data(void);
+void serialize_clients_logs(void);
 void print_clients_and_info(void);
 
 
@@ -86,8 +101,12 @@ void _ready(void) {
     push_log(__LINE__, __func__, "INFO", "Execution started. [START]");
     push_log(__LINE__, __func__, "DEBUG", "MAX_CLIENTS initialized to %d.", MAX_CLIENTS);
     // Initialize all clients account number to empty strings (to allow checking for empty clients).
-    for (size_t i = 0; i == MAX_CLIENTS; i++) {
-        strcpy(account_number[i], "");
+    for (size_t client = 0; client == MAX_CLIENTS; client++) {
+        strcpy(account_number[client], "");
+        // Initialize all logs to \0 to allow checking for available log spaces.
+        for (size_t log = 0; log < MAX_OPERATION_LOGS; log++) {
+            operation[client][log] = '\0';
+        }
     }
     strcpy(account_number[0], "0123456789\0");
     strcpy(rfc[0], "HEAJ061203J4\0");
@@ -107,26 +126,24 @@ void _ready(void) {
     push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
             account_number[0]);
 
-    // strcpy(account_number[1], "1234567890\0");
-    // strcpy(rfc[1], "HEAJ061203J4\0");
-    // strcpy(name[1], "Antonio\0");
-    // strcpy(street[1], "mamawebo 190\0");
-    // strcpy(suburb[1], "Rio colorao\0");
-    // strcpy(city[1], "Deoyork\0");
-    // strcpy(house_number[1], "123\0");
-    // strcpy(phone[1], "3481655796\0");
-    // registration_day[1] = 03;
-    // registration_month[1] = 01;
-    // registration_year[1] = 2025;
-    // opening_balance[1] = 5000.00;
-    // current_balance[1] = 6700.00;
-    // strcpy(status[1], "ACTIVE\0");
-    // push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
-    //         account_number[1]);
+    strcpy(account_number[1], "1234567890\0");
+    strcpy(rfc[1], "HEAJ061203J4\0");
+    strcpy(name[1], "Antonio\0");
+    strcpy(street[1], "mamawebo 190\0");
+    strcpy(suburb[1], "Rio colorao\0");
+    strcpy(city[1], "Deoyork\0");
+    strcpy(house_number[1], "123\0");
+    strcpy(phone[1], "3481655796\0");
+    registration_day[1] = 03;
+    registration_month[1] = 01;
+    registration_year[1] = 2025;
+    opening_balance[1] = 5000.00;
+    current_balance[1] = 6700.00;
+    strcpy(status[1], "ACTIVE\0");
+    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
+            account_number[1]);
 
     serialize_clients_data();
-
-    push_log(__LINE__, __func__, "INFO", "The transactoin log is not implemented yet.");
 }
 
 int main(void) {
@@ -307,7 +324,7 @@ void register_clients(void) {
             // Asking for an opening balance.
             printf("Enter opening balance (minimum $%.2f): $", MIN_OPENING_BALANCE);
             do {
-                scanf("%lf", &opening_balance[client]);
+                scanf("%f", &opening_balance[client]);
                 system("cls"); // Clear the console.
                 if (opening_balance[client] < MIN_OPENING_BALANCE) {
                     printf("Error: Opening balance must be at least $%.2f. Please, try again: $",
@@ -392,121 +409,144 @@ void remove_clients(void) {
     }
 
     char option;
-    s_string client_to_remove;
+    s_string client_to_remove; // The account number typed by user.
+    /** Changed in v2.0.0: In v1.x.x this was inside of a for loop that was responsible for searching
+     * the right account index. But since v2.0.0 I added a get_account_index function that does that
+     * work better. Because I used this variable everywhere inside thad loop body, I decided not to 
+     * change it.
+     */
+    int client; // The index of the client to remove
 
-    ask_for_string("account number", client_to_remove, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH,
-            true);
-    for (size_t client = 0; client < MAX_CLIENTS; client++) {
-        // Find the client.
-        if (strcmp(account_number[client], client_to_remove) == 0) {
-            // Print client's information.
-            printf("Client %zu information:\n\n", client + 1);
-            printf("Account number: %s\n", account_number[client]);
-            printf("RFC: %s\n", rfc[client]);
-            printf("Name: %s\n", name[client]);
-            printf("Address: %s %s, %s, %s\n", house_number[client], street[client], suburb[client],
-                    city[client]);
-            printf("Phone number: %s\n", phone[client]);
-            printf("Registration date: %hd/%hd/%d", registration_month[client],
-                    registration_day[client], registration_year[client]);
-            printf("Current balance: $%.2f\n", current_balance[client]);
-            printf("Status: \"%s\"\n", status[client]);
+    // Get client account index.
+    do {
+        ask_for_string("account number", client_to_remove, ACCOUNT_NUMBER_LENGTH, ACCOUNT_NUMBER_LENGTH, true);
+        client = get_account_index(client_to_remove);
+    } while (client < 0);
+    // Print client's information.
+    printf("Client %zu information:\n\n", client + 1);
+    printf("Account number: %s\n", account_number[client]);
+    printf("RFC: %s\n", rfc[client]);
+    printf("Name: %s\n", name[client]);
+    printf("Address: %s %s, %s, %s\n", house_number[client], street[client], suburb[client],
+            city[client]);
+    printf("Phone number: %s\n", phone[client]);
+    printf("Registration date: %hd/%hd/%d\n", registration_month[client],
+            registration_day[client], registration_year[client]);
+    printf("Current balance: $%.2f\n", current_balance[client]);
+    printf("Status: \"%s\"\n", status[client]);
 
-            /// @brief Asks to change status if current is "ACTIVE" and has funds.
-            if (current_balance[client] > 0) {
-                push_log(__LINE__, __func__, "FAIL", "Client %s has funds in his account.",
-                        account_number[client]);
-                // Inform admin that client stills having funds.
-                printf("\nWarning: There are funds in this account. Account balance must be zero to"
-                        " be able to delete.\n");
-                
-                // Inform admin about status and asks if want to switch it.
-                if (strcmp(status[client], "ACTIVE") == 0){
-                    push_log(__LINE__, __func__, "FAIL", "Client %s status is \"ACTIVE\" but funds"
-                            " remain unemptied.", account_number[client]);
-                    printf("Info: Client status is \"ACTIVE\", but must be \"PENDING_CLOSURE\" to"
-                            " proceed.\n\nDo you want to change the status to \"PENDING_CLOSURE\"? "
-                            "(y/n)\nWARNING: This action can NOT be undone. $ ");
-                    do {
-                        scanf(" %c", &option);
-                        getchar();
-                        system("cls");
-                        if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
-                            printf("Error: Invalid option. Please, try again: $ ");
-                            push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
-                        }
-                    } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
-                    
-                    if (option == 'y' || option == 'Y') {
-                        strcpy(status[client], "PENDING_CLOSURE\0"); // Switch status.
-                        push_log(__LINE__, __func__, "INFO", "Client status changed from \"ACTIVE\""
-                                " to \"%s\".", status[client]);
-                        serialize_clients_data();
-                        printf("Client status changed successfully! Now client is able to empty his"
-                                " funds.\n\n");
-                    } else {
-                        push_log(__LINE__, __func__, "INFO", "Client status change aborted.");
-                        printf("Operation aborted.\n\n");
-                    }
-                
-                // If client has status "PENDING_CLOSURE" and funds.
-                } else if (strcmp(status[client], "PENDING_CLOSURE") == 0) {
-                    push_log(__LINE__, __func__, "FAIL", "Client status is \"PENDING_CLOSURE\" but "
-                            "funds remain unemptied.");
-                    printf("Info: Client status is \"PENDING_CLOSURE\", but his funds remain "
-                            "unemptied. Come back after withdrawing all funds.\n\n");
-                } else {
-                    // This shouldn't happen, but just in case (it happened once before xd).
-                    push_log(__LINE__, __func__, "CRITICAL", "Account %s status is null.",
-                            account_number[client]);
-                    printf("WARNING! A critical error has ocurred: Client status is neither "
-                            "\"ACTIVE\" nor \"PENDING_CLOSURE\".\n");
+    /// @brief Asks to change status if current is "ACTIVE" and has funds.
+    if (current_balance[client] > 0) {
+        push_log(__LINE__, __func__, "FAIL", "Client %s has funds in his account.",
+                account_number[client]);
+        // Inform admin that client stills having funds.
+        printf("\nWarning: There are funds in this account. Account balance must be zero to"
+                " be able to delete.\n");
+        
+        // Inform admin about status and asks if want to switch it.
+        if (strcmp(status[client], "ACTIVE") == 0){
+            push_log(__LINE__, __func__, "FAIL", "Client %s status is \"ACTIVE\" but funds"
+                    " remain unemptied.", account_number[client]);
+            printf("Info: Client status is \"ACTIVE\", but must be \"PENDING_CLOSURE\" to"
+                    " proceed.\n\nDo you want to change the status to \"PENDING_CLOSURE\"? "
+                    "(y/n)\nWARNING: This action can NOT be undone. $ ");
+            do {
+                scanf(" %c", &option);
+                getchar();
+                system("cls");
+                if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
+                    printf("Error: Invalid option. Please, try again: $ ");
+                    push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
                 }
-                
-            // If client don't have funds anymore and have status "PENDING_CLOSURE" can be removed.
+            } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
+            
+            if (option == 'y' || option == 'Y') {
+                strcpy(status[client], "PENDING_CLOSURE\0"); // Switch status.
+                push_log(__LINE__, __func__, "INFO", "Client status changed from \"ACTIVE\""
+                        " to \"%s\".", status[client]);
+                serialize_clients_data();
+                printf("Client status changed successfully! Now client is able to empty his"
+                        " funds.\n\n");
             } else {
-                printf("\nDo you want to remove this client? This can't be undone. (y/n): $ ");
-                do {
-                    scanf(" %c", &option);
-                    getchar(); // Clear the input buffer
-                    system("cls"); // Clear the console.
-                    if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
-                        printf("Error: Invalid option. Please, try again: $ ");
-                        push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
-                    }
-                } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
+                push_log(__LINE__, __func__, "INFO", "Client status change aborted.");
+                printf("Operation aborted.\n\n");
+            }
+        
+        // If client has status "PENDING_CLOSURE" and funds.
+        } else if (strcmp(status[client], "PENDING_CLOSURE") == 0) {
+            push_log(__LINE__, __func__, "FAIL", "Client status is \"PENDING_CLOSURE\" but "
+                    "funds remain unemptied.");
+            printf("Info: Client status is \"PENDING_CLOSURE\", but his funds remain "
+                    "unemptied. Come back after withdrawing all funds.\n\n");
+        } else {
+            // This shouldn't happen, but just in case (it happened once before xd).
+            push_log(__LINE__, __func__, "CRITICAL", "Account %s status is null.",
+                    account_number[client]);
+            printf("WARNING! A critical error has ocurred: Client status is neither "
+                    "\"ACTIVE\" nor \"PENDING_CLOSURE\".\n");
+        }
+        
+    // If client don't have funds anymore and have status "PENDING_CLOSURE" can be removed.
+    } else {
+        printf("\nDo you want to remove this client? This can't be undone. (y/n): $ ");
+        do {
+            scanf(" %c", &option);
+            getchar(); // Clear the input buffer
+            system("cls"); // Clear the console.
+            if (option != 'y' && option != 'n' && option != 'Y' && option != 'N') {
+                printf("Error: Invalid option. Please, try again: $ ");
+                push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
+            }
+        } while (option != 'y' && option != 'n' && option != 'Y' && option != 'N');
 
-                if (option == 'y' || option == 'Y') {
-                    printf("Rearranging clients...\n");
-                    /**
-                     * Rearrange clients to fill the slot of the client that must be removed. This
-                     * method helps to avoid errors in the future and to keep data organized.
-                     */
-                    for (size_t i = client; i < MAX_CLIENTS; i++) {
-                        strcpy(account_number[i], account_number[i + 1]);
-                        strcpy(rfc[i], rfc[i + 1]);
-                        strcpy(name[i], name[i + 1]);
-                        strcpy(street[i], street[i + 1]);
-                        strcpy(suburb[i], suburb[i + 1]);
-                        strcpy(city[i], city[i + 1]);
-                        strcpy(house_number[i], house_number[i + 1]);
-                        strcpy(phone[i], phone[i + 1]);
-                        registration_day[i] = registration_day[i + 1];
-                        registration_month[i] = registration_month[i + 1];
-                        registration_year[i] = registration_year[i + 1];
-                        opening_balance[i] = opening_balance[i + 1];
-                        current_balance[i] = current_balance[i + 1];
-                        strcpy(status[i], status[i + 1]);
+        if (option == 'y' || option == 'Y') {
+            printf("Rearranging clients...\n");
+            /** Rearrange clients.
+             * Rearrange clients to fill the slot of the client that must be removed. This
+             * method helps to avoid errors in the future and to keep data organized.
+             */
+            for (size_t i = client; i < MAX_CLIENTS; i++) {
+                if (strcmp(account_number[i], "") == 0) {
+                    break; // If this client is empty, is not necessary to continue.
+                }
+                strcpy(account_number[i], account_number[i + 1]);
+                strcpy(rfc[i], rfc[i + 1]);
+                strcpy(name[i], name[i + 1]);
+                strcpy(street[i], street[i + 1]);
+                strcpy(suburb[i], suburb[i + 1]);
+                strcpy(city[i], city[i + 1]);
+                strcpy(house_number[i], house_number[i + 1]);
+                strcpy(phone[i], phone[i + 1]);
+                registration_day[i] = registration_day[i + 1];
+                registration_month[i] = registration_month[i + 1];
+                registration_year[i] = registration_year[i + 1];
+                opening_balance[i] = opening_balance[i + 1];
+                current_balance[i] = current_balance[i + 1];
+                strcpy(status[i], status[i + 1]);
+                
+                // Rearrange client's logs.
+                for (size_t log = 0; log < MAX_OPERATION_LOGS; log++) {
+                    if (operation[i][log] == '\0') {
+                        break; // If current log is empty, is not necessary to continue.
                     }
-                    push_log(__LINE__, __func__, "INFO", "Client removed.");
-                    printf("Client removed successfully!\n\n");
-                    serialize_clients_data();
-
-                } else {
-                    push_log(__LINE__, __func__, "INFO", "Client removing aborted.");
-                    printf("Operation aborted.\n\n");
+                    operation[i][log] = operation[i + 1][log];
+                    op_day[i][log] = op_day[i + 1][log];
+                    op_month[i][log] = op_month[i + 1][log];
+                    op_year[i][log] = op_year[i + 1][log];
+                    op_hour[i][log] = op_hour[i + 1][log];
+                    op_minute[i][log] = op_minute[i + 1][log];
+                    op_second[i][log] = op_second[i + 1][log];
+                    op_amount[i][log] = op_amount[i + 1][log];
                 }
             }
+            push_log(__LINE__, __func__, "INFO", "Client removed.");
+            serialize_clients_data();
+            serialize_clients_logs();
+            printf("Client removed successfully!\n\n");
+
+        } else {
+            push_log(__LINE__, __func__, "INFO", "Client removing aborted.");
+            printf("Operation aborted.\n\n");
         }
     }
 }
@@ -702,10 +742,10 @@ void deposit(int account_index) {
         return;
     }
 
-    double deposit_amount;
+    float deposit_amount;
     printf("Enter the amount to deposit: $");
     do {
-        scanf("%lf", &deposit_amount);
+        scanf("%f", &deposit_amount);
         system("cls"); // Clear the console.
         if (deposit_amount <= 0) {
             printf("Error: Deposit amount must be greater than zero. Please, try again: $");
@@ -716,6 +756,7 @@ void deposit(int account_index) {
     current_balance[account_index] += deposit_amount; // Add the deposit to current balance.
     push_log(__LINE__, __func__, "INFO", "Deposit of $%f made to account %s. Current balance: $%f.",
             deposit_amount, account_number[account_index], current_balance[account_index]);
+    log_operation(account_index, 'd', deposit_amount); // Save the info of the transaction.
     printf("Deposit successful! New balance: $%.2f\n\n", current_balance[account_index]);
     serialize_clients_data();
 }
@@ -723,13 +764,21 @@ void deposit(int account_index) {
 /// @brief Withdraws an amount from the specified account. Current balance mustn´t be less than 3000.00
 /// @param account_index The index of the account to withdraw from.
 void withdraw(int account_index) {
-    double withdraw_amount;
+    // If client doesn't have enough funds, access is denied.
+    if ((strcmp(status[account_index], "ACTIVE") == 0 && current_balance[account_index] == MIN_BALANCE) || current_balance[account_index] == 0) {
+        push_log(__LINE__, __func__, "ERROR", "Client %s doesn't have enough funds.",
+                account_number[account_index]);
+        printf("Error: Insufficient funds.\n\n");
+        return;
+    }
+
+    float withdraw_amount;
     printf("Enter the amount to withdraw: $");
     do {
-        scanf("%lf", &withdraw_amount);
+        scanf("%f", &withdraw_amount);
         system("cls"); // Clear the console.
         if (withdraw_amount <= 0) {
-            printf("Error: Withdraw amount must be greater than zero.\n");
+            printf("Error: Withdraw amount must be greater than zero. Please, try again.");
             push_log(__LINE__, __func__, "USER_ERROR", "Invalid input.");
 
         // This condition may change according to client's status.
@@ -760,6 +809,7 @@ void withdraw(int account_index) {
     current_balance[account_index] -= withdraw_amount; // Substract amount from current balance.
     push_log(__LINE__, __func__, "INFO", "Withdrawal of $%f made from account %s. Current balance: "
             "$%f.", withdraw_amount, account_number[account_index], current_balance[account_index]);
+    log_operation(account_index, 'w', withdraw_amount); // Save the info of the transactioN.
     printf("Withdrawal successful! New balance: $%.2f\n\n", current_balance[account_index]);
     serialize_clients_data();
 }
@@ -890,7 +940,7 @@ int look_for_duplications(unsigned int client_index) {
 
 /// @brief Gets the selected date element (day, month or year).
 /// @param store A pointer to the variable which will store the result. If 0, returns by mame only. 
-/// @param date_element 'd' for day, 'm' for month & 'y' for year.
+/// @param date_element 'd': Day, 'm': Month 'y': Year, 'H': Hour, 'M': Minute, 'S': Second.
 /// @return By name and by interface: The selected date element converted to int.
 /// @details This function returns by name and by interface 'cause I wanted to experiment with it.
 int get_time(int *store, char date_element) {
@@ -931,9 +981,15 @@ int get_time(int *store, char date_element) {
         strftime(_date, sizeof(_date), "%m", localtime(&current_time));
     } else if (date_element == 'y') {
         strftime(_date, sizeof(_date), "%Y", localtime(&current_time));
+    } else if (date_element == 'H') {
+        strftime(_date, sizeof(_date), "%H", localtime(&current_time));
+    } else if (date_element == 'M') {
+        strftime(_date, sizeof(_date), "%M", localtime(&current_time));
+    } else if (date_element == 'S') {
+        strftime(_date, sizeof(_date), "%Y", localtime(&current_time));
     } else {
-        push_log(__LINE__, __func__, "ERROR", "Invalid argument 1: Expected 'd', 'm' or 'y'; "
-                "but received '%c'.", date_element);
+        push_log(__LINE__, __func__, "ERROR", "Invalid argument 1: Expected 'd', 'm', 'y', 'H', 'M'"
+                " or 'Y'; but received '%c'.", date_element);
         return -1;
     }
     
@@ -943,6 +999,28 @@ int get_time(int *store, char date_element) {
 
     *store = atoi(_date);
     return 0;
+}
+
+/// @brief Logs the transaction and serializes it in a JSON file.
+/// @param client_index Index of the client who made the transaction.
+/// @param operation_key d: Deposit. w: Withdraw.
+/// @param amount The amount of the transaction.
+void log_operation(unsigned int client_index, const char operation_key, float amount) {
+    for (size_t log = 0; log < MAX_OPERATION_LOGS; log++) {
+        if (operation[client_index][log] == '\0') {
+            operation[client_index][log] = operation_key;
+            op_day[client_index][log] = get_time(0, 'd');
+            op_month[client_index][log] = get_time(0, 'm');
+            op_year[client_index][log] = get_time(0, 'y');
+            op_hour[client_index][log] = get_time(0, 'H');
+            op_minute[client_index][log] = get_time(0, 'M');
+            op_second[client_index][log] = get_time(0, 'S');
+            op_amount[client_index][log] = amount;
+            break; // Without this, all log slots are filled.
+        }
+    }
+
+    serialize_clients_logs();
 }
 
 
@@ -991,8 +1069,9 @@ void serialize_clients_data(void){
     // Opening a file with write permissions.
     FILE *file = fopen("temp_clients_info.json", "w");
     if (file == NULL) {
+        push_log(__LINE__, __func__, "ERROR", "Couldn't be able to open JSON file.");
         // Prints an error message in stderr using the standard variable errno.
-        perror("Error while opening json file");
+        perror("Error while opening JSON file");
         return;
     }
 
@@ -1000,6 +1079,9 @@ void serialize_clients_data(void){
     fprintf(file, "{\n");
     fprintf(file, "\t\"clients\": {\n");
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
+        if (strcmp(account_number[client], "") == 0) {
+            break; // If client is empty, finish.
+        }
         fprintf(file, "\t\t\"client%zu\": {\n", client);
         fprintf(file, "\t\t\t\"accountNumber\": \"%s\",\n", account_number[client]);
         fprintf(file, "\t\t\t\"rfc\": \"%s\",\n", rfc[client]);
@@ -1012,12 +1094,12 @@ void serialize_clients_data(void){
         fprintf(file, "\t\t\t\"registrationDay\": %hu,\n", registration_day[client]);
         fprintf(file, "\t\t\t\"registrationMonth\": %hu,\n", registration_month[client]);
         fprintf(file, "\t\t\t\"registrationYear\": %u,\n", registration_year[client]);
-        fprintf(file, "\t\t\t\"openingBalance\": %lf,\n", opening_balance[client]);
-        fprintf(file, "\t\t\t\"currentBalance\": %lf,\n", current_balance[client]);
+        fprintf(file, "\t\t\t\"openingBalance\": %f,\n", opening_balance[client]);
+        fprintf(file, "\t\t\t\"currentBalance\": %f,\n", current_balance[client]);
         fprintf(file, "\t\t\t\"password\": \"%s\",\n", password[client]);
         fprintf(file, "\t\t\t\"status\": \"%s\"\n", status[client]);
         // The last objet can't be finished with a comma.
-        fprintf(file, "\t\t}%s", client == MAX_CLIENTS - 1 ? "\n" : ",\n");
+        fprintf(file, "\t\t}%s", strcmp(account_number[client + 1], "") == 0 ? "\n" : ",\n");
     }
     fprintf(file, "\t}\n");
     fprintf(file, "}");
@@ -1050,6 +1132,50 @@ void serialize_clients_data(void){
     */
 }
 
+/// @brief Serializes lients logs to a JSON file.
+/// @details The JSON file is created in the same directory as the source code. 
+/// The file is overwritten every time this function is called.
+void serialize_clients_logs(void) {
+    FILE *file = fopen("clients_operation_log.json", "w");
+    if (file == NULL) {
+        push_log(__LINE__, __func__, "ERROR", "Couldn't be able to open JSON file.");
+        perror("Error while opening JSON file");
+        return;
+    }
+
+    fprintf(file, "{\n");
+    fprintf(file, "\t\"clients logs\": {\n");
+    // Clients.
+    for (size_t client = 0; client < MAX_CLIENTS; client++) {
+        if (operation[client][0] == '\0') {
+            break; // Finish if client doesn't has any logs.
+        }
+
+        fprintf(file, "\t\t\"client%zu\": [\n", client);
+        // Logs.
+        for (size_t log = 0; log < MAX_OPERATION_LOGS; log++){
+            if (operation[client][log] == '\0') {
+                break; // Finish if log is empty.
+            }
+            fprintf(file, "\t\t\t{\n");
+            fprintf(file, "\t\t\t\t\"operation\": \"%s\",\n", operation[client][log] == 'd' ? "deposit" :
+                    "withdraw");
+            fprintf(file, "\t\t\t\t\"timestamp\": \"%hu-%hu-%u %hu:%hu:%hu\",\n", op_month[client][log],
+                    op_day[client][log], op_year[client][log], op_hour[client][log],
+                    op_minute[client][log], op_second[client][log]);
+            fprintf(file, "\t\t\t\t\"amount\": %.2f\n", op_amount[client][log]);
+            // Last object can't be finished with a comma.
+            fprintf(file, "\t\t\t}%s", operation[client][log + 1] == '\0' ? "\n" : ",\n");
+        }
+        // The last array can't be finished with a comma.
+        fprintf(file, "\t\t]%s", operation[client + 1][0] == '\0' ? "\n" : ",\n");
+    }
+    fprintf(file, "\t}\n");
+    fprintf(file, "}");
+
+    fclose(file);
+    push_log(__LINE__, __func__, "INFO", "JSON serialized.");
+}
 /// @brief Prints all clients and their information.
 /// @deprecated Use serialize_clients_data() instead.
 void print_clients_and_info(void) { 
