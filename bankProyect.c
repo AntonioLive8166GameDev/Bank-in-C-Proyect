@@ -78,6 +78,7 @@ void client_inquiry(void);
 void deposit(int account_index);
 void withdraw(int account_index);
 void check_balance(int account_index);
+void check_transaction_history(int account_index);
 
 // Tools
 
@@ -108,6 +109,7 @@ void _ready(void) {
             operation[client][log] = '\0';
         }
     }
+  
     // strcpy(account_number[0], "0123456789\0");
     // strcpy(rfc[0], "HEAJ061203J4\0");
     // strcpy(name[0], "Antonio\0");
@@ -143,7 +145,10 @@ void _ready(void) {
     // strcpy(status[1], "ACTIVE\0");
     // push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
     //         account_number[1]);
+
     serialize_clients_data();
+    system("color b");
+    system("title The Bank");
 }
 
 int main(void) {
@@ -274,7 +279,7 @@ void client_menu(int account_index) {
     char client_menu;
     do {
         printf("Client Menu:\n0. Log out.\n1. Deposit.\n2. Withdraw.\n"
-                "3. Check balance.\n\n$ ");
+                "3. Check balance.\n4. Check transaction history.\n\n$ ");
         scanf(" %c", &client_menu);
         getchar(); // Clear the input buffer.
 
@@ -295,6 +300,10 @@ void client_menu(int account_index) {
 
             case '3': // Check balance.
                 check_balance(account_index);
+                break;
+
+            case '4': // Check transaction history.
+                check_transaction_history(account_index);
                 break;
 
             default:
@@ -839,6 +848,41 @@ void check_balance(int account_index) {
             account_number[account_index], current_balance[account_index]);
 }
 
+/// @brief Prints the client's transaction history.
+/// @param account_index The account index of the client.
+void check_transaction_history(int account_index) {
+    system("cls"); // Clear the console
+    if (operation[account_index][0] == '\0') {
+        printf("Error: No logs registered.\n\n");
+        push_log(__LINE__, __func__, "ERROR", "No logs registered for client %s.",
+                account_number[account_index]);
+        return; // Skipp if client doesn't has any logs.
+    }
+
+    // Printing the logs.
+    printf("Transaction history\n\n");
+    printf("| Client: %s |\n", name[account_index]);
+    printf("_________________________________________________________\n");
+    printf("| Num. | Operation |     Date & time      |    Amount    |\n");
+    printf("_________________________________________________________\n");
+    // Logs.
+    for (size_t log = 0; log < MAX_OPERATION_LOGS; log++){
+        if (operation[account_index][log] == '\0') {
+            break; // Finish if log is empty.
+        }
+        printf("|  %zu   |", log);
+        printf(" %s |", operation[account_index][log] == 'd' ? "Deposit  " : "Withdraw ");
+        printf(" %hu-%hu-%u %hu:%hu:%hu\" |", op_month[account_index][log],
+                op_day[account_index][log], op_year[account_index][log], op_hour[account_index][log],
+                op_minute[account_index][log], op_second[account_index][log]);
+        printf(" $%.2f\n", op_amount[account_index][log]);
+    }
+    printf("_________________________________________________________\n");
+    printf("\n");
+
+    push_log(__LINE__, __func__, "INFO", "Printed history of client %s", account_number[account_index]);
+}
+
 
 /* TOOLS */
 
@@ -1030,6 +1074,7 @@ void log_operation(unsigned int client_index, const char operation_key, float am
         }
     }
 
+    push_log(__LINE__, __func__, "INFO", "Operation logged.");
     serialize_clients_logs();
 }
 
@@ -1085,7 +1130,7 @@ void serialize_clients_data(void){
         return;
     }
 
-    // "Serialize" data.
+    // "Serialize" data (with JSON format).
     fprintf(file, "{\n");
     fprintf(file, "\t\"clients\": {\n");
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
@@ -1186,6 +1231,7 @@ void serialize_clients_logs(void) {
     fclose(file);
     push_log(__LINE__, __func__, "INFO", "JSON serialized.");
 }
+
 /// @brief Prints all clients and their information.
 /// @deprecated Use serialize_clients_data() instead.
 void print_clients_and_info(void) { 
