@@ -1065,6 +1065,7 @@ void log_operation(unsigned int client_index, const char operation_key, float am
         }
     }
 
+    push_log(__LINE__, __func__, "INFO", "Operation logged.");
     serialize_clients_logs();
 }
 
@@ -1120,7 +1121,7 @@ void serialize_clients_data(void){
         return;
     }
 
-    // "Serialize" data.
+    // "Serialize" data (with JSON format).
     fprintf(file, "{\n");
     fprintf(file, "\t\"clients\": {\n");
     for (size_t client = 0; client < MAX_CLIENTS; client++) {
@@ -1221,6 +1222,7 @@ void serialize_clients_logs(void) {
     fclose(file);
     push_log(__LINE__, __func__, "INFO", "JSON serialized.");
 }
+
 /// @brief Prints all clients and their information.
 /// @deprecated Use serialize_clients_data() instead.
 void print_clients_and_info(void) { 
