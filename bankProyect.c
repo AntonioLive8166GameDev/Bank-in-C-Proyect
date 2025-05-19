@@ -874,6 +874,7 @@ void check_transaction_history(int account_index) {
     push_log(__LINE__, __func__, "INFO", "Printed history of client %s", account_number[account_index]);
 }
 
+
 /* TOOLS */
 
 /// @brief Prompts the user for a string that meets certain requirements. Includes verification system.
