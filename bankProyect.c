@@ -108,42 +108,41 @@ void _ready(void) {
             operation[client][log] = '\0';
         }
     }
-    strcpy(account_number[0], "0123456789\0");
-    strcpy(rfc[0], "HEAJ061203J4\0");
-    strcpy(name[0], "Antonio\0");
-    strcpy(street[0], "mamawebo 190\0");
-    strcpy(suburb[0], "Rio colorao\0");
-    strcpy(city[0], "Deoyork\0");
-    strcpy(house_number[0], "123\0");
-    strcpy(phone[0], "3481655796\0");
-    registration_day[0] = 03;
-    registration_month[0] = 01;
-    registration_year[0] = 2025;
-    opening_balance[0] = 5000.00;
-    current_balance[0] = 6700.00;
-    strcpy(password[0], "juasjuas");
-    strcpy(status[0], "ACTIVE\0");
-    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
-            account_number[0]);
+    // strcpy(account_number[0], "0123456789\0");
+    // strcpy(rfc[0], "HEAJ061203J4\0");
+    // strcpy(name[0], "Antonio\0");
+    // strcpy(street[0], "mamawebo 190\0");
+    // strcpy(suburb[0], "Rio colorao\0");
+    // strcpy(city[0], "Deoyork\0");
+    // strcpy(house_number[0], "123\0");
+    // strcpy(phone[0], "3481655796\0");
+    // registration_day[0] = 03;
+    // registration_month[0] = 01;
+    // registration_year[0] = 2025;
+    // opening_balance[0] = 5000.00;
+    // current_balance[0] = 6700.00;
+    // strcpy(password[0], "juasjuas");
+    // strcpy(status[0], "ACTIVE\0");
+    // push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
+    //         account_number[0]);
 
-    strcpy(account_number[1], "1234567890\0");
-    strcpy(rfc[1], "HEAJ061203J4\0");
-    strcpy(name[1], "Antonio\0");
-    strcpy(street[1], "mamawebo 190\0");
-    strcpy(suburb[1], "Rio colorao\0");
-    strcpy(city[1], "Deoyork\0");
-    strcpy(house_number[1], "123\0");
-    strcpy(phone[1], "3481655796\0");
-    registration_day[1] = 03;
-    registration_month[1] = 01;
-    registration_year[1] = 2025;
-    opening_balance[1] = 5000.00;
-    current_balance[1] = 6700.00;
-    strcpy(password[1], "juasjuas");
-    strcpy(status[1], "ACTIVE\0");
-    push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
-            account_number[1]);
-
+    // strcpy(account_number[1], "1234567890\0");
+    // strcpy(rfc[1], "HEAJ061203J4\0");
+    // strcpy(name[1], "Antonio\0");
+    // strcpy(street[1], "mamawebo 190\0");
+    // strcpy(suburb[1], "Rio colorao\0");
+    // strcpy(city[1], "Deoyork\0");
+    // strcpy(house_number[1], "123\0");
+    // strcpy(phone[1], "3481655796\0");
+    // registration_day[1] = 03;
+    // registration_month[1] = 01;
+    // registration_year[1] = 2025;
+    // opening_balance[1] = 5000.00;
+    // current_balance[1] = 6700.00;
+    // strcpy(password[1], "juasjuas");
+    // strcpy(status[1], "ACTIVE\0");
+    // push_log(__LINE__, __func__, "DEBUG", "Client with account %s data initialized.",
+    //         account_number[1]);
     serialize_clients_data();
 }
 
@@ -185,6 +184,14 @@ int main(void) {
                 ; // An empty statement to fix an error in CODE::BLOCKS (GCC compiler, I use MSVC).
                 s_string account;
                 int account_index;
+                
+                // Due to the client elimination and registration systems, if client0 has no account number 
+                // means that there's no clients registered.
+                if (strcmp(account_number[0], "") == 0) {
+                    push_log(__LINE__, __func__, "ERROR", "No registered users.");
+                    printf("Error: There are no registered users.\n\n");
+                    break;
+                }
 
                 // Asks for an account number and gets it's index.
                 do {
