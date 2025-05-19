@@ -154,7 +154,7 @@ void _ready(void) {
 int main(void) {
     _ready();
     char login_menu;
-    string admin = "AntonioLive8166", admin_pswrd = "ArsevusBestDevs", attempt;
+    string admin = "AntonioLive8166", admin_pswrd = "Arsevus8166", attempt;
 
     do {
         printf("How do you want to sign in?\n0. Exit.\n1. Administrator.\n2. Client.\n\n$ ");
